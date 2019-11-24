@@ -17,6 +17,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+private slots:
+    void onOpenActionTriggered();
+    void onAddToLibraryActionTriggered();
 };
 
 #endif // MAINWINDOW_H

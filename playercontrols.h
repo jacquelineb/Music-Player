@@ -17,6 +17,9 @@ public:
 
 private:
     Ui::PlayerControls *ui;
+
+private slots:
+    void clickPlay();
 };
 
 #endif // PLAYERCONTROLS_H

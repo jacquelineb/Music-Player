@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = MediaPlayer2
+TARGET = MediaPlayer
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -27,15 +27,18 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    playercontrols.cpp
+    playercontrols.cpp \
+    player.cpp
 
 HEADERS += \
         mainwindow.h \
-    playercontrols.h
+    playercontrols.h \
+    player.h
 
 FORMS += \
         mainwindow.ui \
-    playercontrols.ui
+    playercontrols.ui \
+    player.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
