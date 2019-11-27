@@ -11,24 +11,33 @@ Player::Player(QWidget *parent) :
 {
     ui->setupUi(this);
     mediaPlayer = new QMediaPlayer(this);
-    //mediaPlayer->setAudioRole(QAudio::MusicRole);
+    // initialize the volume of mediaPlayer to whatever PlayerControls has the volumeSlider set to. mediaPlayer->setVolume(ui->controls->getVolume())
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
 
 
     //connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setControlsState); //do this from the controls class
 
-    connect(ui->controls, &PlayerControls::play, mediaPlayer, &QMediaPlayer::play);
-    connect(ui->controls, &PlayerControls::pause, mediaPlayer, &QMediaPlayer::pause);
+    connect(ui->controls, &PlayerControls::playClicked, mediaPlayer, &QMediaPlayer::play);  // might have to edit this connection later.
+                                                                                     // if user presses play when no media is set,
+                                                                                     // then i'd want playback to just start from first song in library.
+
+    connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
+    // connection for when control sends signal from pressing prev button
+    // connection for when control send signal from pressing next button
+    // connection for when control's volume slider changes.
+    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
+
 }
 
 Player::~Player()
 {
     delete ui;
+    delete mediaPlayer; // Not sure if I actually need this
 }
 
 
-void Player::setMediaFile(QUrl filename)
+void Player::setMediaOfPlayer(QUrl filename)
 {
     mediaPlayer->setMedia(filename); // make sure to set up a connection (see Qt's doc for QMediaPlayer::setMedia)
     qDebug() << mediaPlayer->mediaStatus();

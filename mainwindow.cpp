@@ -20,7 +20,10 @@ MainWindow::~MainWindow()
 void MainWindow::onOpenActionTriggered()
 {
     QUrl filename = QFileDialog::getOpenFileUrl(this, "Open file");
-    ui->player->setMediaFile(filename);
+    if (!filename.isEmpty())
+    {
+        ui->player->setMediaOfPlayer(filename);
+    }
 }
 
 void MainWindow::onAddToLibraryActionTriggered()
