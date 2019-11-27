@@ -15,7 +15,8 @@ class Player : public QWidget
 public:
     explicit Player(QWidget *parent = nullptr);
     ~Player();
-    void playFile(QUrl filename);
+    void setMediaFile(QUrl filename);
+    void addToLibrary(QUrl filename);
 
 private:
     Ui::Player *ui;
@@ -23,6 +24,8 @@ private:
 
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
+    void onStateChanged(QMediaPlayer::State state);
+    //void play();
 };
 
 #endif // PLAYER_H

@@ -20,19 +20,6 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
-    <spacer name="leftHorizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
    <item row="2" column="2">
     <spacer name="rightHorizontalSpacer">
      <property name="orientation">
@@ -46,10 +33,36 @@
      </property>
     </spacer>
    </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QColumnView" name="playlistView">
+     <property name="minimumSize">
+      <size>
+       <width>681</width>
+       <height>319</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <spacer name="bottomVerticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>10</width>
+       <height>5</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
    <item row="1" column="1">
     <widget class="QLabel" name="currentTrackLabel">
      <property name="text">
-      <string>CURRENTLY PLAYING</string>
+      <string>PLAY SOMETHING</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -66,21 +79,15 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
-    <widget class="QColumnView" name="playlistView"/>
-   </item>
-   <item row="3" column="1">
-    <spacer name="bottomVerticalSpacer">
+   <item row="2" column="0">
+    <spacer name="leftHorizontalSpacer">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
+      <enum>Qt::Horizontal</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>10</width>
-       <height>5</height>
+       <width>40</width>
+       <height>20</height>
       </size>
      </property>
     </spacer>

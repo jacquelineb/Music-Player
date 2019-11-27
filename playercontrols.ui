@@ -45,7 +45,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="playButton">
+      <widget class="QPushButton" name="prevButton">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -59,7 +59,19 @@
         </size>
        </property>
        <property name="text">
-        <string>play</string>
+        <string>prev</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -80,7 +92,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="prevButton">
+      <widget class="QPushButton" name="playButton">
        <property name="minimumSize">
         <size>
          <width>30</width>
@@ -94,7 +106,7 @@
         </size>
        </property>
        <property name="text">
-        <string>prev</string>
+        <string>play</string>
        </property>
       </widget>
      </item>

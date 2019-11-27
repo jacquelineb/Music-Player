@@ -2,6 +2,7 @@
 #define PLAYERCONTROLS_H
 
 #include <QWidget>
+#include <QMediaPlayer>
 
 namespace Ui {
 class PlayerControls;
@@ -17,6 +18,14 @@ public:
 
 private:
     Ui::PlayerControls *ui;
+    QMediaPlayer::State state;
+
+signals:
+    void play();
+    void pause();
+
+public slots:
+    void setControlsState(QMediaPlayer::State mediaState); // maybe this can just be changed to a public function?
 
 private slots:
     void clickPlay();
