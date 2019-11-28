@@ -17,6 +17,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void closeEvent(QCloseEvent *event);
     void restoreWindowSettings();
     void saveWindowSettings();
 
