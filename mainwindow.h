@@ -17,6 +17,8 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void restoreWindowSettings();
+    void saveWindowSettings();
 
 private slots:
     void onOpenActionTriggered();
