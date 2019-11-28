@@ -3,6 +3,9 @@
 
 #include <QWidget>
 #include <QMediaPlayer>
+#include <QCloseEvent>
+#include <QSettings>
+
 
 namespace Ui {
 class PlayerControls;
@@ -15,10 +18,16 @@ class PlayerControls : public QWidget
 public:
     explicit PlayerControls(QWidget *parent = nullptr);
     ~PlayerControls();
+    int getVolume() { return volume; }
 
 private:
     Ui::PlayerControls *ui;
     QMediaPlayer::State state; //  this is needed in order to change the functionality of the play button accordingly (i.e. should it play or pause)
+    int volume;
+    QSettings settings{"session.ini", QSettings::Format::IniFormat};
+    void restoreVolSliderState();
+    void saveVolSliderState();
+    void closeEvent(QCloseEvent *event);
 
 signals:
     void playClicked();
@@ -31,7 +40,7 @@ public slots:
 private slots:
     void clickPlay();
     void clickPrev();
-    void setVolume(int value);
+    void setVolume(int volSliderValue);
 };
 
 #endif // PLAYERCONTROLS_H

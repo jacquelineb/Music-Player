@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QAbstractButton>
+#include <QCloseEvent>
 #include <QMediaMetaData>
 
 Player::Player(QWidget *parent) :
@@ -11,7 +12,9 @@ Player::Player(QWidget *parent) :
 {
     ui->setupUi(this);
     mediaPlayer = new QMediaPlayer(this);
+    mediaPlayer->setAudioRole(QAudio::Role::MusicRole); // this should actually change based on media type
     // initialize the volume of mediaPlayer to whatever PlayerControls has the volumeSlider set to. mediaPlayer->setVolume(ui->controls->getVolume())
+    restorePlayerSettings();
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
 
@@ -25,9 +28,7 @@ Player::Player(QWidget *parent) :
     connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
     // connection for when control sends signal from pressing prev button
     // connection for when control send signal from pressing next button
-    // connection for when control's volume slider changes.
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
-
 }
 
 Player::~Player()
@@ -37,16 +38,38 @@ Player::~Player()
 }
 
 
+void Player::restorePlayerSettings()
+{
+    /* Restore volume, last playlist, etc. */
+    mediaPlayer->setVolume(ui->controls->getVolume());
+}
+
+void Player::savePlayerSettings()
+{
+    /* Save which playlist was last opened */
+}
+
+
+void Player::closeEvent(QCloseEvent *event)
+{
+    savePlayerSettings();
+    ui->controls->close();
+    event->accept();
+}
+
+
 void Player::setMediaOfPlayer(QUrl filename)
 {
     mediaPlayer->setMedia(filename); // make sure to set up a connection (see Qt's doc for QMediaPlayer::setMedia)
     qDebug() << mediaPlayer->mediaStatus();
 }
 
+
 void Player::addToLibrary(QUrl filename)
 {
 
 }
+
 
 void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 {

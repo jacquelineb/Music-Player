@@ -1,16 +1,13 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
 
-
 PlayerControls::PlayerControls(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PlayerControls)
 {
     ui->setupUi(this);
     state = QMediaPlayer::State::StoppedState;
-    // read from a json file to set the position of the volume slider and to set the volume itself. for now just set the slider to its maximum
-    ui->volumeSlider->setSliderPosition(ui->volumeSlider->maximum());
-    // look here https://doc.qt.io/qt-5/qmediaplayer.html#volume-prop and here https://doc.qt.io/qt-5/qaudio.html#convertVolume
+    restoreVolSliderState();
     connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::clickPlay);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
@@ -18,18 +15,29 @@ PlayerControls::PlayerControls(QWidget *parent) :
 
 PlayerControls::~PlayerControls()
 {
-    // save volume state to json
     delete ui;
 }
 
 
-void PlayerControls::setVolume(int value)
+void PlayerControls::restoreVolSliderState()
 {
-    qDebug() << "Vol value: " << value;
-    // take a look at the following links to set value
-    // https://doc.qt.io/qt-5/qmediaplayer.html#volume-prop, https://doc.qt.io/qt-5/qaudio.html#convertVolume
-    emit volumeChanged(value);
+    ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
+    setVolume(ui->volumeSlider->value());
+}
 
+
+void PlayerControls::saveVolSliderState()
+{
+    settings.setValue("PlayerControls/volumeSlider", ui->volumeSlider->value());
+}
+
+
+void PlayerControls::setVolume(int volSliderValue)
+{
+    //qDebug() << "Vol value: " << volSliderValue;
+    qreal linearVolume = QAudio::convertVolume(volSliderValue / qreal(100.0), QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
+    volume = qRound(linearVolume * 100);
+    emit volumeChanged(volume);
 }
 
 void PlayerControls::clickPlay()
@@ -56,17 +64,12 @@ void PlayerControls::clickPlay()
     }
 }
 
+
 void PlayerControls::clickPrev()
 {
     // Play previous song in the playlist
 }
 
-/*
-void PlayerControls::setVolumeSliderPosition()
-{
-    qreal volume = QAudio::convertVolume()
-}
-*/
 
 void PlayerControls::setControlsState(QMediaPlayer::State mediaState)
 {
@@ -79,3 +82,11 @@ void PlayerControls::setControlsState(QMediaPlayer::State mediaState)
         // should this label change be done in here or in clickPlay()
     }
 }
+
+void PlayerControls::closeEvent(QCloseEvent *event)
+{
+    saveVolSliderState();
+    event->accept();
+}
+
+

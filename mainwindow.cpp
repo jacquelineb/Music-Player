@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    restoreWindowSettings();
+    restoreWindowState();
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onOpenActionTriggered);
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &MainWindow::onAddToLibraryActionTriggered);
 }
@@ -35,33 +35,32 @@ void MainWindow::onAddToLibraryActionTriggered()
     ui->player->addToLibrary(filename);
 }
 
-void MainWindow::restoreWindowSettings()
+void MainWindow::restoreWindowState()
 {
-    QSettings settings("session.ini", QSettings::Format::IniFormat);
-    move(settings.value("mainwindow/pos", pos()).toPoint());
-    if (settings.value("mainwindow/isMaximized", true).toBool())
+    move(settings.value("MainWindow/position", pos()).toPoint());
+    if (settings.value("MainWindow/isMaximized", true).toBool())
     {
         setWindowState(Qt::WindowState::WindowMaximized);
     }
     else
     {
-        resize(settings.value("mainwindow/size", size()).toSize());
+        resize(settings.value("MainWindow/size", size()).toSize());
     }
 }
 
 
 
-void MainWindow::saveWindowSettings()
+void MainWindow::saveWindowState()
 {
-    qDebug() << "from save: " << pos();
-    QSettings settings("session.ini", QSettings::Format::IniFormat);
-    settings.setValue("mainwindow/pos", pos());
-    settings.setValue("mainwindow/isMaximized", isMaximized());
-    settings.setValue("mainwindow/size", size());
+    settings.setValue("MainWindow/position", pos());
+    settings.setValue("MainWindow/isMaximized", isMaximized());
+    settings.setValue("MainWindow/size", size());
 }
 
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    saveWindowSettings();
+    saveWindowState();
+    ui->player->close();
+    event->accept();
 }

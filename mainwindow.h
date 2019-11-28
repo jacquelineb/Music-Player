@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
 
 namespace Ui {
 class MainWindow;
@@ -17,9 +18,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    QSettings settings{"session.ini", QSettings::Format::IniFormat};
     void closeEvent(QCloseEvent *event);
-    void restoreWindowSettings();
-    void saveWindowSettings();
+    void restoreWindowState();
+    void saveWindowState();
 
 private slots:
     void onOpenActionTriggered();

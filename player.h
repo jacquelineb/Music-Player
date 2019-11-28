@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QMediaPlayer>
+#include <QSettings>
 
 namespace Ui {
 class Player;
@@ -21,6 +22,11 @@ public:
 private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
+    QSettings settings{"session.ini", QSettings::Format::IniFormat};
+
+    void closeEvent(QCloseEvent *event);
+    void restorePlayerSettings();
+    void savePlayerSettings();
 
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
