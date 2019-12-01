@@ -5,6 +5,7 @@
 #include <QAbstractButton>
 #include <QCloseEvent>
 #include <QMediaMetaData>
+#include <QTime>
 
 Player::Player(QWidget *parent) :
     QWidget(parent),
@@ -29,6 +30,10 @@ Player::Player(QWidget *parent) :
     // connection for when control sends signal from pressing prev button
     // connection for when control send signal from pressing next button
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
+    connect(ui->controls, &PlayerControls::progressSliderChanged, mediaPlayer, &QMediaPlayer::setPosition);
+
+    connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 }
 
 

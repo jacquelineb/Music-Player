@@ -11,6 +11,7 @@ PlayerControls::PlayerControls(QWidget *parent) :
     connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::clickPlay);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
+    connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderChanged);
 }
 
 PlayerControls::~PlayerControls()
@@ -25,9 +26,24 @@ void PlayerControls::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
+void PlayerControls::updateProgressSlider(qint64 position)
+{
+    ui->progressSlider->setValue(position);
+}
+
+
+void PlayerControls::setupProgressSlider(qint64 mediaDurationInMillisec)
+{
+    //qint64 mediaDurationInSec = mediaDurationInMillisec / 1000;
+    //ui->progressSlider->setMaximum(mediaDurationInSec);
+    ui->progressSlider->setMaximum(mediaDurationInMillisec);
+}
 
 void PlayerControls::restoreVolSliderState()
 {
+    // rename this to restoreControlSettings or initializeControlSettings
+    // initialize PlayerControls::state in here instead of directly in constructor
+    // initialize the progressSlider to be unchangeable or set the marker to be invisible. (maybe)
     ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
     setVolume(ui->volumeSlider->value());
 }

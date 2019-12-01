@@ -23,7 +23,7 @@ private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
-
+    qint64 position_ = 0;
     void closeEvent(QCloseEvent *event);
     void restorePlayerSettings();
     void savePlayerSettings();
