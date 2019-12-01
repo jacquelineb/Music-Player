@@ -31,6 +31,7 @@ Player::Player(QWidget *parent) :
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
 }
 
+
 Player::~Player()
 {
     delete ui;

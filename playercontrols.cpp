@@ -19,10 +19,28 @@ PlayerControls::~PlayerControls()
 }
 
 
+void PlayerControls::closeEvent(QCloseEvent *event)
+{
+    saveVolSliderState();
+    event->accept();
+}
+
+
 void PlayerControls::restoreVolSliderState()
 {
     ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
     setVolume(ui->volumeSlider->value());
+}
+
+
+void PlayerControls::setVolume(int volSliderValue)
+{
+    qDebug() << "Vol value: " << volSliderValue;
+    qreal linearVolume = QAudio::convertVolume(volSliderValue / qreal(100.0),
+                                               QAudio::LogarithmicVolumeScale,
+                                               QAudio::LinearVolumeScale);
+    volume = qRound(linearVolume * 100);
+    emit volumeChanged(volume);
 }
 
 
@@ -31,14 +49,6 @@ void PlayerControls::saveVolSliderState()
     settings.setValue("PlayerControls/volumeSlider", ui->volumeSlider->value());
 }
 
-
-void PlayerControls::setVolume(int volSliderValue)
-{
-    //qDebug() << "Vol value: " << volSliderValue;
-    qreal linearVolume = QAudio::convertVolume(volSliderValue / qreal(100.0), QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
-    volume = qRound(linearVolume * 100);
-    emit volumeChanged(volume);
-}
 
 void PlayerControls::clickPlay()
 {
@@ -82,11 +92,3 @@ void PlayerControls::setControlsState(QMediaPlayer::State mediaState)
         // should this label change be done in here or in clickPlay()
     }
 }
-
-void PlayerControls::closeEvent(QCloseEvent *event)
-{
-    saveVolSliderState();
-    event->accept();
-}
-
-

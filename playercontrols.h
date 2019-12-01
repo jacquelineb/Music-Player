@@ -18,7 +18,7 @@ class PlayerControls : public QWidget
 public:
     explicit PlayerControls(QWidget *parent = nullptr);
     ~PlayerControls();
-    int getVolume() { return volume; }
+    int getVolume() const { return volume; }
 
 private:
     Ui::PlayerControls *ui;
