@@ -20,6 +20,16 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="1">
+    <widget class="QLabel" name="currentTrackLabel">
+     <property name="text">
+      <string>PLAY SOMETHING</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
    <item row="2" column="2">
     <spacer name="rightHorizontalSpacer">
      <property name="orientation">
@@ -32,16 +42,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="0" column="0" colspan="3">
-    <widget class="QColumnView" name="playlistView">
-     <property name="minimumSize">
-      <size>
-       <width>681</width>
-       <height>319</height>
-      </size>
-     </property>
-    </widget>
    </item>
    <item row="3" column="1">
     <spacer name="bottomVerticalSpacer">
@@ -59,26 +59,6 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="1">
-    <widget class="QLabel" name="currentTrackLabel">
-     <property name="text">
-      <string>PLAY SOMETHING</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="PlayerControls" name="controls" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>540</width>
-       <height>67</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="2" column="0">
     <spacer name="leftHorizontalSpacer">
      <property name="orientation">
@@ -91,6 +71,19 @@
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="2" column="1">
+    <widget class="PlayerControls" name="controls" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>540</width>
+       <height>67</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <widget class="QTableView" name="tableView"/>
    </item>
   </layout>
  </widget>

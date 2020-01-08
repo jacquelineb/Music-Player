@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui multimedia
+QT       += core gui multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,17 +28,20 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     playercontrols.cpp \
-    player.cpp
+    player.cpp \
+    playlisttableview.cpp
 
 HEADERS += \
         mainwindow.h \
     playercontrols.h \
-    player.h
+    player.h \
+    playlisttableview.h
 
 FORMS += \
         mainwindow.ui \
     playercontrols.ui \
-    player.ui
+    player.ui \
+    playlisttableview.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

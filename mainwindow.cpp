@@ -48,8 +48,6 @@ void MainWindow::restoreWindowState()
     }
 }
 
-
-
 void MainWindow::saveWindowState()
 {
     settings.setValue("MainWindow/position", pos());

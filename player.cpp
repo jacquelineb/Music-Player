@@ -14,7 +14,6 @@ Player::Player(QWidget *parent) :
     ui->setupUi(this);
     mediaPlayer = new QMediaPlayer(this);
     mediaPlayer->setAudioRole(QAudio::Role::MusicRole); // this should actually change based on media type
-    // initialize the volume of mediaPlayer to whatever PlayerControls has the volumeSlider set to. mediaPlayer->setVolume(ui->controls->getVolume())
     restorePlayerSettings();
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
@@ -30,10 +29,12 @@ Player::Player(QWidget *parent) :
     // connection for when control sends signal from pressing prev button
     // connection for when control send signal from pressing next button
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
-    connect(ui->controls, &PlayerControls::progressSliderChanged, mediaPlayer, &QMediaPlayer::setPosition);
+    connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
 
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
+
+
 }
 
 
@@ -73,7 +74,6 @@ void Player::setMediaOfPlayer(QUrl filename)
 
 void Player::addToLibrary(QUrl filename)
 {
-
 }
 
 
