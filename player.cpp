@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QAbstractButton>
 #include <QCloseEvent>
+#include <QFileInfo>
 #include <QMediaMetaData>
 #include <QTime>
 
@@ -33,6 +34,9 @@ Player::Player(QWidget *parent) :
 
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
+
+    addMedia = new QMediaPlayer(this);
+    connect(addMedia, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
 
 
 }
@@ -74,6 +78,41 @@ void Player::setMediaOfPlayer(QUrl filename)
 
 void Player::addToLibrary(QUrl filename)
 {
+    //https://stackoverflow.com/questions/23678748/qtcreator-qmediaplayer-meta-data-returns-blank-qstring
+    // above explains why I chose to use a separate QMediaPlayer (addMedia) for adding media to the library.
+    addMedia->setMedia(filename);
+}
+
+void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+   if (status == QMediaPlayer::LoadedMedia)
+   {
+        QString location = addMedia->currentMedia().canonicalUrl().toLocalFile();
+        QString title = addMedia->metaData(QMediaMetaData::Title).toString();
+        if (title == "")
+        {
+            title = QFileInfo::QFileInfo(location).completeBaseName();
+        }
+        QString artist = addMedia->metaData(QMediaMetaData::Author).toString();
+        QString album = addMedia->metaData(QMediaMetaData::AlbumTitle).toString();
+        quint64 trackNum = addMedia->metaData(QMediaMetaData::TrackNumber).toUInt();
+        quint64 year = addMedia->metaData(QMediaMetaData::Year).toUInt();
+        QString genre = addMedia->metaData(QMediaMetaData::Genre).toString();
+        quint64 duration = addMedia->metaData(QMediaMetaData::Duration).toUInt();
+
+        qDebug() << "Location: " << location;
+        qDebug() << "Title: " << title;
+        qDebug() << "Artist: " << artist;
+        qDebug() << "Album: " << album;
+        qDebug() << "Track Number: " << trackNum;
+        qDebug() << "Year: " << year;
+        qDebug() << "Genre: " << genre;
+        qDebug() << "Duration: " << duration;
+
+        // TODO: check the media database's Artist table for the artist. If found, get the artist id, else add this new artist to the Artist table,
+        // and get its id.
+        // Then insert the song into the Song table with the title, artist id, album, trackNum, year, genre, length, and location data.
+   }
 }
 
 
@@ -81,6 +120,7 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia) // Once the media is loaded, i want it to start playing.
     {
+        /*
         qDebug() << "status: " << mediaPlayer->mediaStatus();
         qDebug() << "audio availability: " << mediaPlayer->isAudioAvailable(); // this returns false for songs that don't play. figure out why the audio for these songs is unavailable.
         qDebug() << "duration: " << mediaPlayer->duration();
@@ -90,6 +130,7 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
         qDebug() << "volume: " << mediaPlayer->volume();
         qDebug() << "playback rate: " << mediaPlayer->playbackRate();
         qDebug() << "availability: " << mediaPlayer->availability();
+        */
         mediaPlayer->play();
     }
     else if (status == QMediaPlayer::InvalidMedia || status == QMediaPlayer::UnknownMediaStatus)

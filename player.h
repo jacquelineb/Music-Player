@@ -22,6 +22,7 @@ public:
 private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
+    QMediaPlayer *addMedia = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
     void closeEvent(QCloseEvent *event);
@@ -30,6 +31,7 @@ private:
 
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
+    void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onStateChanged(QMediaPlayer::State state);
 };
 
