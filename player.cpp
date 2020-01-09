@@ -132,9 +132,19 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         query.bindValue(":artist", artist); // exec() overwrites the placeholder with data, so rebinding :artist to artist is necessary.
         query.exec();
         query.first();
-
         int artistId = query.value("id").toInt();
 
+        query.prepare("INSERT INTO Song (title, artist_id, album, track_num, year, genre, duration, location) "
+                      "VALUES (:title, :artist_id, :album, :track_num, :year, :genre, :duration, :location)");
+        query.bindValue(":title", title);
+        query.bindValue(":artist_id", artistId);
+        query.bindValue(":album", album);
+        query.bindValue(":track_num", trackNum);
+        query.bindValue(":year", year);
+        query.bindValue(":genre", genre);
+        query.bindValue(":duration", duration);
+        query.bindValue(":location", location);
+        query.exec();
    }
 }
 

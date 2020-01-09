@@ -24,9 +24,10 @@ bool connectToMediaDb()
                    "title       VARCHAR(255),"
                    "artist_id   INTEGER,"
                    "album       VARCHAR(255),"
-                   "song_num    INTEGER,"
+                   "track_num   INTEGER,"
                    "year        INTEGER,"
                    "genre       VARCHAR(255),"
+                   "duration    INTEGER,"
                    "location    TEXT UNIQUE NOT NULL"
             ");";
 
