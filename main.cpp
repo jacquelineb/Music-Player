@@ -33,7 +33,7 @@ bool connectToMediaDb()
     QString createArtistTable =
             "CREATE TABLE Artist ("
                 "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE"
+                "name   VARCHAR(255) UNIQUE NOT NULL"
             ");";
 
     QSqlQuery query;
@@ -42,6 +42,9 @@ bool connectToMediaDb()
 
     query.exec("INSERT INTO Artist (name)"
                "VALUES ('BANKS');");
+
+    query.exec("INSERT INTO Artist (name)"
+               "VALUES ('ME');");
     // Set table relations
     //QSqlRelationalTableModel *relationalTableModel = new QSqlRelationalTableModel;
     //rel

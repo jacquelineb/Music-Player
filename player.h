@@ -22,7 +22,7 @@ public:
 private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
-    QMediaPlayer *addMedia = nullptr;
+    QMediaPlayer *mediaToBeAdded = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
     void closeEvent(QCloseEvent *event);

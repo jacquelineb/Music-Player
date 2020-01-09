@@ -12,8 +12,6 @@ PlayerControls::PlayerControls(QWidget *parent) :
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
     connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
-
-    qDebug() << "playercontrols() called";
 }
 
 PlayerControls::~PlayerControls()

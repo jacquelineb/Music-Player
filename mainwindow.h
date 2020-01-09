@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSettings>
+#include <QMediaPlayer>
 
 namespace Ui {
 class MainWindow;
@@ -22,7 +23,6 @@ private:
     void closeEvent(QCloseEvent *event);
     void restoreWindowState();
     void saveWindowState();
-
 private slots:
     void onOpenActionTriggered();
     void onAddToLibraryActionTriggered();

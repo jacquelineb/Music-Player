@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QMediaMetaData>
 #include <QTime>
+#include <QtSql>
 
 Player::Player(QWidget *parent) :
     QWidget(parent),
@@ -35,8 +36,9 @@ Player::Player(QWidget *parent) :
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 
-    addMedia = new QMediaPlayer(this);
-    connect(addMedia, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
+    mediaToBeAdded = new QMediaPlayer(this);
+    connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
+
 
 
 }
@@ -46,6 +48,7 @@ Player::~Player()
 {
     delete ui;
     delete mediaPlayer; // Not sure if I actually need this
+    delete mediaToBeAdded;
 }
 
 
@@ -80,25 +83,31 @@ void Player::addToLibrary(QUrl filename)
 {
     //https://stackoverflow.com/questions/23678748/qtcreator-qmediaplayer-meta-data-returns-blank-qstring
     // above explains why I chose to use a separate QMediaPlayer (addMedia) for adding media to the library.
-    addMedia->setMedia(filename);
+    mediaToBeAdded->setMedia(filename);
 }
 
 void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
    if (status == QMediaPlayer::LoadedMedia)
    {
-        QString location = addMedia->currentMedia().canonicalUrl().toLocalFile();
-        QString title = addMedia->metaData(QMediaMetaData::Title).toString();
-        if (title == "")
+        QString location = mediaToBeAdded->currentMedia().canonicalUrl().toLocalFile();
+        QString title = mediaToBeAdded->metaData(QMediaMetaData::Title).toString();
+        if (title.isEmpty())
         {
-            title = QFileInfo::QFileInfo(location).completeBaseName();
+            title = QFileInfo(location).completeBaseName();
         }
-        QString artist = addMedia->metaData(QMediaMetaData::Author).toString();
-        QString album = addMedia->metaData(QMediaMetaData::AlbumTitle).toString();
-        quint64 trackNum = addMedia->metaData(QMediaMetaData::TrackNumber).toUInt();
-        quint64 year = addMedia->metaData(QMediaMetaData::Year).toUInt();
-        QString genre = addMedia->metaData(QMediaMetaData::Genre).toString();
-        quint64 duration = addMedia->metaData(QMediaMetaData::Duration).toUInt();
+        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString() + "";
+        /*  The + "" is necessary because if the metadata for the arguement passed to metaData() doesn't exist,
+         *  then using .toString() on the result of metaData() will result in a NULL string. The + "" will convert
+         *  this into an emptry string, which is what I need because I want an empty string to be a valid input (and
+         *  for NULL to be invalid input) for the name field of the Artist table in the media database and NULL input to be invalid.
+        */
+
+        QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
+        int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
+        int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
+        QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
+        int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
 
         qDebug() << "Location: " << location;
         qDebug() << "Title: " << title;
@@ -109,9 +118,23 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         qDebug() << "Genre: " << genre;
         qDebug() << "Duration: " << duration;
 
-        // TODO: check the media database's Artist table for the artist. If found, get the artist id, else add this new artist to the Artist table,
+        // DONE: check the media database's Artist table for the artist. If found, get the artist id, else add this new artist to the Artist table,
         // and get its id.
-        // Then insert the song into the Song table with the title, artist id, album, trackNum, year, genre, length, and location data.
+        // TODO: Then insert the song into the Song table with the title, artist id, album, trackNum, year, genre, length, and location data.
+
+        QSqlQuery query;
+        query.prepare("INSERT INTO Artist (name)"
+                      "VALUES (:artist)");
+        query.bindValue(":artist", artist);
+        query.exec();
+        query.prepare("SELECT id FROM Artist "
+                      "WHERE name = :artist");
+        query.bindValue(":artist", artist); // exec() overwrites the placeholder with data, so rebinding :artist to artist is necessary.
+        query.exec();
+        query.first();
+
+        int artistId = query.value("id").toInt();
+
    }
 }
 

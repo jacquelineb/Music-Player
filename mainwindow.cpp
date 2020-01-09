@@ -4,6 +4,8 @@
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QSettings>
+#include <QtSql>
+#include <QMediaMetaData>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -13,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreWindowState();
     connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onOpenActionTriggered);
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &MainWindow::onAddToLibraryActionTriggered);
+
 }
 
 MainWindow::~MainWindow()
