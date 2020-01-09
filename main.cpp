@@ -33,28 +33,24 @@ bool connectToMediaDb()
                    "genre       VARCHAR(255),"
                    "duration    INTEGER,"
                    "location    TEXT UNIQUE NOT NULL,"
-                   "FOREIGN KEY(artist_id) REFERENCES Artist(id)"
-            ");";
+                   "FOREIGN KEY(artist_id) REFERENCES Artist(id))";
 
     QString createArtistTable =
             "CREATE TABLE IF NOT EXISTS Artist ("
                 "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE NOT NULL"
-            ");";
+                "name   VARCHAR(255) UNIQUE NOT NULL)";
 
     QString createPlaylistTable =
             "CREATE TABLE IF NOT EXISTS Playlist ("
                 "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE NOT NULL"
-            ");";
+                "name   VARCHAR(255) UNIQUE NOT NULL)";
 
     QString createPlaylistSongsTable =
-            "CREATE TABLE IF NOT EXISTS PlaylistSongs ("
+            "CREATE TABLE IF NOT EXISTS PlaylistTracks ("
                 "playlist_id    INTEGER,"
                 "track_id       INTEGER,"
                 "FOREIGN KEY(playlist_id) REFERENCES Playlist(id),"
-                "FOREIGN KEY(track_id) REFERENCES Track(id)"
-            ");";
+                "FOREIGN KEY(track_id) REFERENCES Track(id))";
 
     QSqlQuery query;
     query.exec(createSongTable);
@@ -62,14 +58,8 @@ bool connectToMediaDb()
     query.exec(createArtistTable);
     query.exec(createPlaylistTable);
     query.exec(createPlaylistSongsTable);
-    query.exec("INSERT INTO Playlist (name)"
-               "VALUES ('All Tracks');");
-
-    query.exec("INSERT INTO Artist (name)"
-               "VALUES ('BANKS');");
-
-    query.exec("INSERT INTO Artist (name)"
-               "VALUES ('ME');");
+    query.exec("INSERT INTO Playlist (name) "
+               "VALUES ('All Tracks')");
 
     return true;
 }

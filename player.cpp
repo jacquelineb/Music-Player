@@ -87,13 +87,44 @@ void Player::addToLibrary(QUrl filename)
     mediaToBeAdded->setMedia(filename);
 }
 
-void insertAndSelectArtistFromMediaDb(QString const& artistName)
+void insertToArtistTable(QString const& artistName)
 {
     QSqlQuery query;
-    query.prepare("INSERT INTO Artist (name)"
+    query.prepare("INSERT INTO Artist (name) "
                   "VALUES (:artist)");
     query.bindValue(":artist", artistName);
     query.exec();
+}
+
+int getIdFromArtistTable(QString const& artistName)
+{
+    QSqlQuery query;
+    query.prepare("SELECT id FROM Artist "
+                  "WHERE name = :artist");
+    query.bindValue(":artist", artistName); // exec() overwrites the placeholder with data, so rebinding :artist to artist is necessary.
+    query.exec();
+    query.first();
+    return query.value("id").toInt();
+}
+
+void insertToTrackTable(QString const& title, int artistId, QString const& album,
+                        int trackNum, int year, QString const& genre, int duration,
+                        QString const& location)
+{
+
+    QSqlQuery query;
+    query.prepare("INSERT INTO Track (title, artist_id, album, track_num, year, genre, duration, location) "
+                  "VALUES (:title, :artist_id, :album, :track_num, :year, :genre, :duration, :location)");
+    query.bindValue(":title", title);
+    query.bindValue(":artist_id", artistId);
+    query.bindValue(":album", album);
+    query.bindValue(":track_num", trackNum);
+    query.bindValue(":year", year);
+    query.bindValue(":genre", genre);
+    query.bindValue(":duration", duration);
+    query.bindValue(":location", location);
+    query.exec();
+
 }
 
 void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
@@ -130,10 +161,13 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 
         // DONE: check the media database's Artist table for the artist. If found, get the artist id, else add this new artist to the Artist table,
         // and get its id.
-        // TODO: Then insert the song into the Song table with the title, artist id, album, trackNum, year, genre, length, and location data.
+        // DONE: Then insert the song into the Song table with the title, artist id, album, trackNum, year, genre, length, and location data.
 
+
+        /*
         QSqlQuery query;
-        query.prepare("INSERT INTO Artist (name)"
+
+        query.prepare("INSERT INTO Artist (name) "
                       "VALUES (:artist)");
         query.bindValue(":artist", artist);
         query.exec();
@@ -155,18 +189,12 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         query.bindValue(":duration", duration);
         query.bindValue(":location", location);
         query.exec();
+        */
+        insertToArtistTable(artist);
+        int artistId = getIdFromArtistTable(artist);
+        insertToTrackTable(title, artistId, album, trackNum, year, genre, duration, location);
+    }
 
-        query.prepare("SELECT id FROM Track "
-                      "WHERE location = :location");
-        query.bindValue(":location", location);
-        query.exec();
-        query.first();
-        int trackId = query.value("id").toInt();
-        qDebug() << trackId;
-
-        query.prepare("SELECT id FROM Playlist "
-                      "WHERE name = 'All Tracks'");
-   }
 }
 
 
