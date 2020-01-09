@@ -7,7 +7,8 @@
 #include <QFileInfo>
 #include <QMediaMetaData>
 #include <QTime>
-#include <QtSql>
+#include <QSqlQuery>
+#include <QSqlError> // maybe delete this later
 
 Player::Player(QWidget *parent) :
     QWidget(parent),
@@ -86,6 +87,15 @@ void Player::addToLibrary(QUrl filename)
     mediaToBeAdded->setMedia(filename);
 }
 
+void insertAndSelectArtistFromMediaDb(QString const& artistName)
+{
+    QSqlQuery query;
+    query.prepare("INSERT INTO Artist (name)"
+                  "VALUES (:artist)");
+    query.bindValue(":artist", artistName);
+    query.exec();
+}
+
 void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
    if (status == QMediaPlayer::LoadedMedia)
@@ -134,7 +144,7 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         query.first();
         int artistId = query.value("id").toInt();
 
-        query.prepare("INSERT INTO Song (title, artist_id, album, track_num, year, genre, duration, location) "
+        query.prepare("INSERT INTO Track (title, artist_id, album, track_num, year, genre, duration, location) "
                       "VALUES (:title, :artist_id, :album, :track_num, :year, :genre, :duration, :location)");
         query.bindValue(":title", title);
         query.bindValue(":artist_id", artistId);
@@ -145,6 +155,17 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         query.bindValue(":duration", duration);
         query.bindValue(":location", location);
         query.exec();
+
+        query.prepare("SELECT id FROM Track "
+                      "WHERE location = :location");
+        query.bindValue(":location", location);
+        query.exec();
+        query.first();
+        int trackId = query.value("id").toInt();
+        qDebug() << trackId;
+
+        query.prepare("SELECT id FROM Playlist "
+                      "WHERE name = 'All Tracks'");
    }
 }
 

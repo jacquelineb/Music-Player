@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QMessageBox>
-#include <QtSql>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 bool connectToMediaDb()
 {
@@ -17,9 +19,11 @@ bool connectToMediaDb()
         return false;
     }
 
-    // Create tables
+    // Create tables. Make sure to check if the tables already exists.A
+    // MOVE SOME STUFF INTO FUNCTIONS
+    // Add delete on cascade?
     QString createSongTable =
-            "CREATE TABLE Song ("
+            "CREATE TABLE IF NOT EXISTS Track ("
                    "id          INTEGER PRIMARY KEY,"
                    "title       VARCHAR(255),"
                    "artist_id   INTEGER,"
@@ -28,27 +32,44 @@ bool connectToMediaDb()
                    "year        INTEGER,"
                    "genre       VARCHAR(255),"
                    "duration    INTEGER,"
-                   "location    TEXT UNIQUE NOT NULL"
+                   "location    TEXT UNIQUE NOT NULL,"
+                   "FOREIGN KEY(artist_id) REFERENCES Artist(id)"
             ");";
 
     QString createArtistTable =
-            "CREATE TABLE Artist ("
+            "CREATE TABLE IF NOT EXISTS Artist ("
                 "id     INTEGER PRIMARY KEY,"
                 "name   VARCHAR(255) UNIQUE NOT NULL"
             ");";
 
+    QString createPlaylistTable =
+            "CREATE TABLE IF NOT EXISTS Playlist ("
+                "id     INTEGER PRIMARY KEY,"
+                "name   VARCHAR(255) UNIQUE NOT NULL"
+            ");";
+
+    QString createPlaylistSongsTable =
+            "CREATE TABLE IF NOT EXISTS PlaylistSongs ("
+                "playlist_id    INTEGER,"
+                "track_id       INTEGER,"
+                "FOREIGN KEY(playlist_id) REFERENCES Playlist(id),"
+                "FOREIGN KEY(track_id) REFERENCES Track(id)"
+            ");";
+
     QSqlQuery query;
     query.exec(createSongTable);
+    qDebug() << query.lastError();
     query.exec(createArtistTable);
+    query.exec(createPlaylistTable);
+    query.exec(createPlaylistSongsTable);
+    query.exec("INSERT INTO Playlist (name)"
+               "VALUES ('All Tracks');");
 
     query.exec("INSERT INTO Artist (name)"
                "VALUES ('BANKS');");
 
     query.exec("INSERT INTO Artist (name)"
                "VALUES ('ME');");
-    // Set table relations
-    //QSqlRelationalTableModel *relationalTableModel = new QSqlRelationalTableModel;
-    //rel
 
     return true;
 }
