@@ -26,13 +26,13 @@ void PlayerControls::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void PlayerControls::updateProgressSlider(qint64 position)
+void PlayerControls::updateProgressSlider(int position)
 {
     ui->progressSlider->setValue(position);
 }
 
 
-void PlayerControls::setupProgressSlider(qint64 mediaDurationInMillisec)
+void PlayerControls::setupProgressSlider(int mediaDurationInMillisec)
 {
     //qint64 mediaDurationInSec = mediaDurationInMillisec / 1000;
     //ui->progressSlider->setMaximum(mediaDurationInSec);

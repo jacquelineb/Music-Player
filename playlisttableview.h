@@ -2,6 +2,7 @@
 #define PLAYLISTTABLEVIEW_H
 
 #include <QWidget>
+#include <QSqlRelationalTableModel>
 
 namespace Ui {
 class PlaylistTableView;
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::PlaylistTableView *ui;
+    QSqlRelationalTableModel *model;
 };
 
 #endif // PLAYLISTTABLEVIEW_H

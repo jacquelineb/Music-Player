@@ -37,8 +37,8 @@ signals:
 
 public slots:
     void setControlsState(QMediaPlayer::State mediaState); // maybe this can just be changed to a public function?
-    void setupProgressSlider(qint64 mediaDurationInMillisec);
-    void updateProgressSlider(qint64 position);
+    void setupProgressSlider(int mediaDurationInMillisec);
+    void updateProgressSlider(int position);
 
 private slots:
     void clickPlay();
