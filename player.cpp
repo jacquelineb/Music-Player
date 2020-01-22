@@ -41,7 +41,6 @@ Player::Player(QWidget *parent) :
     connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
 
 
-
 }
 
 

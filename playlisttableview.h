@@ -19,6 +19,9 @@ public:
 private:
     Ui::PlaylistTableView *ui;
     QSqlRelationalTableModel *model;
+
+private slots:
+    void onDoubleClicked(const QModelIndex &index);
 };
 
 #endif // PLAYLISTTABLEVIEW_H
