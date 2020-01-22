@@ -22,7 +22,6 @@ public:
 
 private:
     Ui::PlayerControls *ui;
-    QMediaPlayer::State state; //  this is needed in order to change the functionality of the play button accordingly (i.e. should it play or pause)
     int volume;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     void restoreVolSliderState();
@@ -30,15 +29,15 @@ private:
     void closeEvent(QCloseEvent *event);
 
 signals:
-    void playClicked();
+    void playOrPauseClicked();
     void pauseClicked();
     void volumeChanged(int value);
     void progressSliderMoved(int value);
 
 public slots:
-    void setControlsState(QMediaPlayer::State mediaState); // maybe this can just be changed to a public function?
     void setupProgressSlider(int mediaDurationInMillisec);
     void updateProgressSlider(int position);
+    void setPlayButtonLabel(QMediaPlayer::State mediaState);
 
 private slots:
     void clickPlay();

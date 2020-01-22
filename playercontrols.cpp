@@ -6,7 +6,6 @@ PlayerControls::PlayerControls(QWidget *parent) :
     ui(new Ui::PlayerControls)
 {
     ui->setupUi(this);
-    state = QMediaPlayer::State::StoppedState;
     restoreVolSliderState();
     connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::clickPlay);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
@@ -66,6 +65,18 @@ void PlayerControls::saveVolSliderState()
 }
 
 
+void PlayerControls::setPlayButtonLabel(QMediaPlayer::State mediaState)
+{
+    if (mediaState == QMediaPlayer::State::PlayingState)
+    {
+        ui->playButton->setText("Pause");
+    }
+    else
+    {
+        ui->playButton->setText("Play");
+    }
+}
+
 void PlayerControls::clickPlay()
 {
     /*
@@ -75,6 +86,7 @@ void PlayerControls::clickPlay()
      if media state is stopped...
     */
     /* what if user presses the buttons without the mediaplayer being loaded or right off the bat when starting the program? */
+    /*
     if (state == QMediaPlayer::State::PlayingState)
     {
         qDebug() << "Play clicked from playingstate";
@@ -84,23 +96,13 @@ void PlayerControls::clickPlay()
     {
         emit playClicked();
     }
+    */
+    emit playOrPauseClicked();
 }
+
 
 
 void PlayerControls::clickPrev()
 {
     // Play previous song in the playlist
-}
-
-
-void PlayerControls::setControlsState(QMediaPlayer::State mediaState)
-{
-    state = mediaState;
-    qDebug() << "From PlayerControls::setControlState" << state;
-    if (state == QMediaPlayer::State::PlayingState)
-    {
-        ui->playButton->setText("||");
-        // set the icon to pause symbol. look up QStyle and QIcon. for now i'm just going to setText.
-        // should this label change be done in here or in clickPlay()
-    }
 }

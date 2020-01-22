@@ -20,14 +20,17 @@ Player::Player(QWidget *parent) :
     restorePlayerSettings();
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel);
 
     //connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setControlsState); //do this from the controls class
 
-    connect(ui->controls, &PlayerControls::playClicked, mediaPlayer, &QMediaPlayer::play);  // might have to edit this connection later.
+    //connect(ui->controls, &PlayerControls::playClicked, mediaPlayer, &QMediaPlayer::play);  // might have to edit this connection later.
                                                                                      // if user presses play when no media is set,
                                                                                      // then i'd want playback to just start from first song in library.
 
-    connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
+    //connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
+    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
+
     // connection for when control sends signal from pressing prev button
     // connection for when control send signal from pressing next button
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
@@ -72,6 +75,32 @@ Player::Player(QWidget *parent) :
 
     connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playSelected);
 }
+
+
+void Player::playOrPauseMedia()
+{
+    if (mediaPlayer->state() == QMediaPlayer::State::PausedState)
+    {
+        mediaPlayer->play();
+    }
+    else if (mediaPlayer->state() == QMediaPlayer::State::PlayingState)
+    {
+        mediaPlayer->pause();
+    }
+    else // StoppedState
+    {
+        qDebug() << "Line 92. Pressing play from Stopped State. See comments";
+        // If there is a song(s) highlighted, start playback from the first highlighted song.
+        // If not, then playback will just start from first song in playlist.
+        QModelIndexList highlightedTrackRows = ui->playlistTableView->selectionModel()->selectedRows();
+        if (!highlightedTrackRows.isEmpty())
+        {
+            playlist->setCurrentIndex(highlightedTrackRows.first().row());
+        }
+        mediaPlayer->play();
+    }
+}
+
 
 void Player::playSelected(const QModelIndex &index)
 {
@@ -237,18 +266,17 @@ void Player::onStateChanged(QMediaPlayer::State state)
 {
 
     qDebug() << "state: " << mediaPlayer->state();
-    // set state of PlayerControls to be the same state.
-    ui->controls->setControlsState(state);
     if (state == QMediaPlayer::State::PlayingState)
     {
-        ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString()); // read the data from a json, instead of directly using the metadata?
-        // other stuff
+        ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
+        // The above might not always work because a file might not have the meta data for Title available, so an empty string might be getting printed.
+        // Instead, just get the artist and title by getting the current index in the playlist and then getting the data from this index in the playlist model.
     }
     // else if it is in the paused state... do something
     // else it is in stopped state.... do something
     else if (state == QMediaPlayer::State::StoppedState)
     {
-        ui->currentTrackLabel->setText("Play something");
+        ui->currentTrackLabel->setText("Play something?");
     }
 
 }

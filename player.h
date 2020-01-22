@@ -37,6 +37,7 @@ private slots:
     void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onStateChanged(QMediaPlayer::State state);
     void playSelected(const QModelIndex &index);
+    void playOrPauseMedia();
 };
 
 #endif // PLAYER_H
