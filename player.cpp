@@ -9,6 +9,7 @@
 #include <QTime>
 #include <QSqlQuery>
 #include <QSqlError> // maybe delete this later
+#include <QMediaPlaylist>
 
 Player::Player(QWidget *parent) :
     QWidget(parent),
@@ -54,10 +55,30 @@ Player::Player(QWidget *parent) :
     playlistModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
     playlistModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
 
+    playlist = new QMediaPlaylist(this);
+    for (int i = 0; i < playlistModel->rowCount(); i++)
+    {
+        QString trackLocation = playlistModel->data(playlistModel->index(i,8)).toString();
+        qDebug() << trackLocation;
+        playlist->addMedia(QUrl(trackLocation));
+    }
+    mediaPlayer->setPlaylist(playlist);
+
     ui->playlistTableView->setModel(playlistModel);
+    ui->playlistTableView->setColumnHidden(0, true);
+    ui->playlistTableView->setColumnHidden(4, true);
+    ui->playlistTableView->setColumnHidden(5, true);
+    ui->playlistTableView->setColumnHidden(8, true);
 
+    connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playSelected);
+}
 
-
+void Player::playSelected(const QModelIndex &index)
+{
+    qDebug() << index.row();
+    // Start playing the song at this index
+    playlist->setCurrentIndex(index.row());
+    mediaPlayer->play();
 }
 
 
@@ -103,6 +124,7 @@ void Player::addToLibrary(QUrl filename)
     mediaToBeAdded->setMedia(filename);
 }
 
+
 void insertToArtistTable(QString const& artistName)
 {
     QSqlQuery query;
@@ -111,6 +133,7 @@ void insertToArtistTable(QString const& artistName)
     query.bindValue(":artist", artistName);
     query.exec();
 }
+
 
 int getIdFromArtistTable(QString const& artistName)
 {
@@ -122,6 +145,7 @@ int getIdFromArtistTable(QString const& artistName)
     query.first();
     return query.value("id").toInt();
 }
+
 
 void insertToTrackTable(QString const& title, int artistId, QString const& album,
                         int trackNum, int year, QString const& genre, int duration,
@@ -186,6 +210,7 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia) // Once the media is loaded, i want it to start playing.
     {
+        qDebug() << "Media has loaded";
         /*
         qDebug() << "status: " << mediaPlayer->mediaStatus();
         qDebug() << "audio availability: " << mediaPlayer->isAudioAvailable(); // this returns false for songs that don't play. figure out why the audio for these songs is unavailable.
@@ -197,7 +222,8 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
         qDebug() << "playback rate: " << mediaPlayer->playbackRate();
         qDebug() << "availability: " << mediaPlayer->availability();
         */
-        mediaPlayer->play();
+
+        //mediaPlayer->play();
     }
     else if (status == QMediaPlayer::InvalidMedia || status == QMediaPlayer::UnknownMediaStatus)
     {

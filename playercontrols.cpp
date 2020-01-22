@@ -77,16 +77,12 @@ void PlayerControls::clickPlay()
     /* what if user presses the buttons without the mediaplayer being loaded or right off the bat when starting the program? */
     if (state == QMediaPlayer::State::PlayingState)
     {
+        qDebug() << "Play clicked from playingstate";
         emit pauseClicked();
     }
-    else if (state == QMediaPlayer::State::PausedState)
+    else
     {
         emit playClicked();
-    }
-    else // StoppedState
-    {
-        // emit a signal to be received in Player class. The Player class should just start playing whatever track is currently highlighted/selected.
-        //                                               if none are selected, just start playing the first song in the playlist.
     }
 }
 

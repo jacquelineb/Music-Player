@@ -25,6 +25,7 @@ private:
     QMediaPlayer *mediaPlayer = nullptr;
     QMediaPlayer *mediaToBeAdded = nullptr;
     QSqlRelationalTableModel *playlistModel = nullptr;
+    QMediaPlaylist *playlist = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
     void closeEvent(QCloseEvent *event);
@@ -35,6 +36,7 @@ private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
     void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onStateChanged(QMediaPlayer::State state);
+    void playSelected(const QModelIndex &index);
 };
 
 #endif // PLAYER_H
