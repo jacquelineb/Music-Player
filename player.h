@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QMediaPlayer>
 #include <QSettings>
+#include <QSqlRelationalTableModel>
 
 namespace Ui {
 class Player;
@@ -23,6 +24,7 @@ private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
     QMediaPlayer *mediaToBeAdded = nullptr;
+    QSqlRelationalTableModel *playlistModel = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
     void closeEvent(QCloseEvent *event);

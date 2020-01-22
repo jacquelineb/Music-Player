@@ -16,11 +16,9 @@ Player::Player(QWidget *parent) :
 {
     ui->setupUi(this);
     mediaPlayer = new QMediaPlayer(this);
-    mediaPlayer->setAudioRole(QAudio::Role::MusicRole); // this should actually change based on media type
     restorePlayerSettings();
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
-
 
     //connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setControlsState); //do this from the controls class
 
@@ -39,6 +37,25 @@ Player::Player(QWidget *parent) :
 
     mediaToBeAdded = new QMediaPlayer(this);
     connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
+
+    // Set up the playlistModel
+    playlistModel = new QSqlRelationalTableModel(this);
+    playlistModel->setTable("Track");
+    playlistModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
+    playlistModel->select();
+
+    playlistModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
+    playlistModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
+    playlistModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
+    playlistModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
+    playlistModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
+    playlistModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
+    playlistModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
+    playlistModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
+    playlistModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+
+    ui->playlistTableView->setModel(playlistModel);
+
 
 
 }
