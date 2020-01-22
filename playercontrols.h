@@ -31,6 +31,8 @@ private:
 signals:
     void playOrPauseClicked();
     void pauseClicked();
+    void prevClicked();
+    void nextClicked();
     void volumeChanged(int value);
     void progressSliderMoved(int value);
 
@@ -42,6 +44,7 @@ public slots:
 private slots:
     void clickPlay();
     void clickPrev();
+    void clickNext();
     void setVolume(int volSliderValue);
 };
 

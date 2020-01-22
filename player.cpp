@@ -29,13 +29,8 @@ Player::Player(QWidget *parent) :
                                                                                      // then i'd want playback to just start from first song in library.
 
     //connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
-    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
-
-    // connection for when control sends signal from pressing prev button
-    // connection for when control send signal from pressing next button
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
-
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 
@@ -66,36 +61,34 @@ Player::Player(QWidget *parent) :
         playlist->addMedia(QUrl(trackLocation));
     }
     mediaPlayer->setPlaylist(playlist);
+    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
+    connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
+    connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
 
     ui->playlistTableView->setModel(playlistModel);
     ui->playlistTableView->setColumnHidden(0, true);
     ui->playlistTableView->setColumnHidden(4, true);
     ui->playlistTableView->setColumnHidden(5, true);
     ui->playlistTableView->setColumnHidden(8, true);
-
     connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playSelected);
 }
 
-
 void Player::playOrPauseMedia()
 {
-    if (mediaPlayer->state() == QMediaPlayer::State::PausedState)
-    {
-        mediaPlayer->play();
-    }
-    else if (mediaPlayer->state() == QMediaPlayer::State::PlayingState)
+    if (mediaPlayer->state() == QMediaPlayer::State::PlayingState)
     {
         mediaPlayer->pause();
     }
-    else // StoppedState
+    else // Pause or Stopped State
     {
-        qDebug() << "Line 92. Pressing play from Stopped State. See comments";
-        // If there is a song(s) highlighted, start playback from the first highlighted song.
-        // If not, then playback will just start from first song in playlist.
-        QModelIndexList highlightedTrackRows = ui->playlistTableView->selectionModel()->selectedRows();
-        if (!highlightedTrackRows.isEmpty())
+        if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
         {
-            playlist->setCurrentIndex(highlightedTrackRows.first().row());
+            // If there is a song(s) highlighted, start playback from the first highlighted song.
+            QModelIndexList highlightedTrackRows = ui->playlistTableView->selectionModel()->selectedRows();
+            if (!highlightedTrackRows.isEmpty())
+            {
+                playlist->setCurrentIndex(highlightedTrackRows.first().row());
+            }
         }
         mediaPlayer->play();
     }
@@ -104,8 +97,6 @@ void Player::playOrPauseMedia()
 
 void Player::playSelected(const QModelIndex &index)
 {
-    qDebug() << index.row();
-    // Start playing the song at this index
     playlist->setCurrentIndex(index.row());
     mediaPlayer->play();
 }

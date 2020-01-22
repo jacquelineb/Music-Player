@@ -9,6 +9,7 @@ PlayerControls::PlayerControls(QWidget *parent) :
     restoreVolSliderState();
     connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::clickPlay);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
+    connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::clickNext);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
     connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
 }
@@ -79,24 +80,6 @@ void PlayerControls::setPlayButtonLabel(QMediaPlayer::State mediaState)
 
 void PlayerControls::clickPlay()
 {
-    /*
-     check the  internal state.
-     if media playing, then clicking the play button should cause the Player to pause, i.e., emit a pause signal. this should be recieved in the Player class.
-     if media is paused, then clicking play should emit a play signal (to be recieved in Player)
-     if media state is stopped...
-    */
-    /* what if user presses the buttons without the mediaplayer being loaded or right off the bat when starting the program? */
-    /*
-    if (state == QMediaPlayer::State::PlayingState)
-    {
-        qDebug() << "Play clicked from playingstate";
-        emit pauseClicked();
-    }
-    else
-    {
-        emit playClicked();
-    }
-    */
     emit playOrPauseClicked();
 }
 
@@ -104,5 +87,11 @@ void PlayerControls::clickPlay()
 
 void PlayerControls::clickPrev()
 {
-    // Play previous song in the playlist
+    emit prevClicked();
+}
+
+
+void PlayerControls::clickNext()
+{
+    emit nextClicked();
 }

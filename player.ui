@@ -125,7 +125,7 @@
       <enum>QFrame::Plain</enum>
      </property>
      <property name="editTriggers">
-      <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::EditKeyPressed</set>
+      <set>QAbstractItemView::SelectedClicked</set>
      </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
