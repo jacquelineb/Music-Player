@@ -24,7 +24,6 @@ private:
     void restoreWindowState();
     void saveWindowState();
 private slots:
-    void onOpenActionTriggered();
     void onAddToLibraryActionTriggered();
 };
 

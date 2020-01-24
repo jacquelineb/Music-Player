@@ -25,6 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    libraryplaylistmodel.cpp \
         main.cpp \
         mainwindow.cpp \
     playercontrols.cpp \
@@ -32,6 +33,7 @@ SOURCES += \
     playlisttableview.cpp
 
 HEADERS += \
+    libraryplaylistmodel.h \
         mainwindow.h \
     playercontrols.h \
     player.h \

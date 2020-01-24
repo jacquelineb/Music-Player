@@ -10,68 +10,130 @@
 #include <QSqlQuery>
 #include <QSqlError> // maybe delete this later
 #include <QMediaPlaylist>
+#include <QSortFilterProxyModel> // maybe delete this later
+
+#include "libraryplaylistmodel.h" //
 
 Player::Player(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Player)
 {
     ui->setupUi(this);
-    mediaPlayer = new QMediaPlayer(this);
-    restorePlayerSettings();
+    initializeMediaPlayer();
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
-    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel);
-
-    //connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setControlsState); //do this from the controls class
-
-    //connect(ui->controls, &PlayerControls::playClicked, mediaPlayer, &QMediaPlayer::play);  // might have to edit this connection later.
-                                                                                     // if user presses play when no media is set,
-                                                                                     // then i'd want playback to just start from first song in library.
-
-    //connect(ui->controls, &PlayerControls::pauseClicked, mediaPlayer, &QMediaPlayer::pause);
-    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
-    connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
+    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
+    connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
 
-    mediaToBeAdded = new QMediaPlayer(this);
-    connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
-
-    // Set up the playlistModel
-    playlistModel = new QSqlRelationalTableModel(this);
-    playlistModel->setTable("Track");
-    playlistModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
-    playlistModel->select();
-
-    playlistModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
-    playlistModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
-    playlistModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
-    playlistModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
-    playlistModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
-    playlistModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
-    playlistModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
-    playlistModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
-    playlistModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
-
-    playlist = new QMediaPlaylist(this);
-    for (int i = 0; i < playlistModel->rowCount(); i++)
-    {
-        QString trackLocation = playlistModel->data(playlistModel->index(i,8)).toString();
-        qDebug() << trackLocation;
-        playlist->addMedia(QUrl(trackLocation));
-    }
+    initializeLibraryModel();
+    initializeLibraryPlaylist();
     mediaPlayer->setPlaylist(playlist);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
     connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
     connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
+    //initializeLibraryTableView();
+    connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playDoubleClickedTrack);
 
-    ui->playlistTableView->setModel(playlistModel);
+    // Change this later
+    mediaToBeAdded = new QMediaPlayer(this);
+    connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
+
+
+    /*
+    QSortFilterProxyModel *proxymodel = new QSortFilterProxyModel;
+    proxymodel->setSourceModel(libraryModel);
+    ui->playlistTableView->setModel(proxymodel);
+    */
+
+
+    LibraryPlaylistModel *sortmodel = new LibraryPlaylistModel(this);
+    sortmodel->setSourceModel(libraryModel);
+    //sortmodel->printRows();
+    sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
+    ui->playlistTableView->setModel(sortmodel);
+    //ui->playlistTableView->setSortingEnabled(true);
+}
+
+
+Player::~Player()
+{
+    delete ui;
+    delete mediaPlayer; // Not sure if I actually need this
+    delete mediaToBeAdded;
+    destroyPlaylist();
+    destroyLibraryModel();
+}
+
+
+void Player::initializeMediaPlayer()
+{
+    mediaPlayer = new QMediaPlayer(this);
+    restorePlayerSettings();
+}
+
+
+void Player::restorePlayerSettings()
+{
+    /* Restore volume, last playlist, etc. */
+    mediaPlayer->setVolume(ui->controls->getVolume());
+}
+
+
+void Player::initializeLibraryModel()
+{
+    libraryModel = new QSqlRelationalTableModel(this);
+    libraryModel->setTable("Track");
+    libraryModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
+    libraryModel->select();
+
+    libraryModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
+    libraryModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
+    libraryModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
+    libraryModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
+    libraryModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
+    libraryModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
+    libraryModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
+    libraryModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
+    libraryModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+}
+
+
+void Player::initializeLibraryPlaylist()
+{
+    playlist = new QMediaPlaylist(this);
+    for (int i = 0; i < libraryModel->rowCount(); i++)
+    {
+        QString trackLocation = libraryModel->data(libraryModel->index(i,8)).toString();
+        qDebug() << trackLocation;
+        playlist->addMedia(QUrl(trackLocation));
+    }
+}
+
+
+void Player::initializeLibraryTableView()
+{
+    ui->playlistTableView->setModel(libraryModel);
     ui->playlistTableView->setColumnHidden(0, true);
     ui->playlistTableView->setColumnHidden(4, true);
     ui->playlistTableView->setColumnHidden(5, true);
     ui->playlistTableView->setColumnHidden(8, true);
-    connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playSelected);
 }
+
+
+void Player::destroyLibraryModel()
+{
+    delete libraryModel;
+}
+
+
+void Player::destroyPlaylist()
+{
+    delete playlist;
+}
+
 
 void Player::playOrPauseMedia()
 {
@@ -95,26 +157,13 @@ void Player::playOrPauseMedia()
 }
 
 
-void Player::playSelected(const QModelIndex &index)
+void Player::playDoubleClickedTrack(const QModelIndex &index)
 {
     playlist->setCurrentIndex(index.row());
     mediaPlayer->play();
 }
 
 
-Player::~Player()
-{
-    delete ui;
-    delete mediaPlayer; // Not sure if I actually need this
-    delete mediaToBeAdded;
-}
-
-
-void Player::restorePlayerSettings()
-{
-    /* Restore volume, last playlist, etc. */
-    mediaPlayer->setVolume(ui->controls->getVolume());
-}
 
 void Player::savePlayerSettings()
 {
@@ -127,13 +176,6 @@ void Player::closeEvent(QCloseEvent *event)
     savePlayerSettings();
     ui->controls->close();
     event->accept();
-}
-
-
-void Player::setMediaOfPlayer(QUrl filename)
-{
-    mediaPlayer->setMedia(filename); // make sure to set up a connection (see Qt's doc for QMediaPlayer::setMedia)
-    qDebug() << mediaPlayer->mediaStatus();
 }
 
 
@@ -183,7 +225,14 @@ void insertToTrackTable(QString const& title, int artistId, QString const& album
     query.bindValue(":genre", genre);
     query.bindValue(":duration", duration);
     query.bindValue(":location", location);
-    query.exec();
+    if (query.exec())
+    {
+        qDebug() << "Line 211: Succesful exec\n";
+    }
+    else
+    {
+        qDebug() << "Line 211: Failed to exec\n";
+    }
 
 }
 

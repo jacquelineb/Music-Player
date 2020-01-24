@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     restoreWindowState();
-    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onOpenActionTriggered);
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &MainWindow::onAddToLibraryActionTriggered);
 
 }
@@ -23,14 +22,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::onOpenActionTriggered()
-{
-    QUrl filename = QFileDialog::getOpenFileUrl(this, "Open file");
-    if (!filename.isEmpty())
-    {
-        ui->player->setMediaOfPlayer(filename);
-    }
-}
 
 void MainWindow::onAddToLibraryActionTriggered()
 {

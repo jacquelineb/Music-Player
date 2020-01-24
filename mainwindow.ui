@@ -47,7 +47,6 @@
      <string>File</string>
     </property>
     <addaction name="actionAddToLibrary"/>
-    <addaction name="actionOpen"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
