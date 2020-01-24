@@ -5,63 +5,76 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
-
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-    const int leftRow = left.row();
-    const int rightRow = right.row();
-    qDebug() << leftRow;
-    qDebug() << rightRow;
 
     QVariant leftData = sourceModel()->data(left);
     QVariant rightData = sourceModel()->data(right);
 
-    const int SORTING_COLUMN = left.column();
-
-    qDebug() << "LibraryPlaylistModel Line 15: " << left.row() << " " << left.column();
-    qDebug() << "LibraryPlaylistModel Line 16: " << right.row() << " " << right.column();
-
-    /*
-    QString leftArtist = sourceModel()->data(index(left.row(), ARTIST_COLUMN)).toString();
-    QString rightArtist = sourceModel()->data(index(left.row(), ARTIST_COLUMN)).toString();
-    */
-
-    if (SORTING_COLUMN == ARTIST_COLUMN)
+    const int sortingColumn  = left.column();
+    const int artistColumn = static_cast<int>(ColumnHeader::artist);
+    if (sortingColumn == artistColumn)
     {
-        qDebug() << "SORTING BY ARTIST";
         QString leftArtist = leftData.toString();
         QString rightArtist = rightData.toString();
-
-        qDebug() << leftArtist << rightArtist;
         if (leftArtist == rightArtist)
         {
-            QString leftAlbum = data(index(left.row(), ALBUM_COLUMN)).toString();
-            QString rightAlbum = data(index(right.row(), ALBUM_COLUMN)).toString();
-            qDebug() << leftAlbum << " " << rightAlbum;
+            const int leftRow = left.row();
+            const int rightRow = right.row();
+            const int albumColumn = static_cast<int>(ColumnHeader::album);
+            QString leftAlbum = sourceModel()->data(index(leftRow, albumColumn)).toString();
+            QString rightAlbum = sourceModel()->data(index(rightRow, albumColumn)).toString();
+
             if (leftAlbum == rightAlbum)
             {
-                qDebug() << "THE ALBUMS ARE THE SAME";
-
-                int leftTrackNum = data(index(left.row(), TRACK_NUMBER_COLUMN)).toInt();
-                int rightTrackNum = data(index(right.row(), TRACK_NUMBER_COLUMN)).toInt();
-                qDebug() << leftTrackNum << " " << rightTrackNum;
+                const int trackNumColumn = static_cast<int>(ColumnHeader::trackNum);
+                int leftTrackNum = sourceModel()->data(index(leftRow, trackNumColumn)).toInt();
+                int rightTrackNum = sourceModel()->data(index(rightRow, trackNumColumn)).toInt();
 
                 if (leftTrackNum == rightTrackNum)
                 {
-                    QString leftTrackName = data(index(left.row(), TITLE_COLUMN)).toString();
-                    QString rightTrackName = data(index(right.row(), TITLE_COLUMN)).toString();
+                    const int titleColumn = static_cast<int>(ColumnHeader::title);
+                    QString leftTrackName = sourceModel()->data(index(leftRow, titleColumn)).toString();
+                    QString rightTrackName = sourceModel()->data(index(rightRow, titleColumn)).toString();
                     return leftTrackName < rightTrackName;
                 }
                 return leftTrackNum < rightTrackNum;
             }
             return leftAlbum < rightAlbum;
-            //return QString::localeAwareCompare(leftAlbum, rightAlbum) < 0;
         }
         return leftArtist < rightArtist;
+    }
+    return false;
+}
+
+/*
+bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+{
+    const int leftRow = left.row();
+    const int rightRow = right.row();
+
+
+    const int SORTING_COLUMN = left.column();
+    if (SORTING_COLUMN == static_cast<int>(ColumnHeader::artist))
+    {
+        qDebug() << "SORTING BY ARTISTS";
+        for (const ColumnHeader &columnHeader : artistSortPriority)
+        {
+           qDebug() << "i is " << static_cast<int>(columnHeader);
+           const int columnHeaderIndex = static_cast<int>(columnHeader);
+           const QModelIndex leftIndex = sourceModel()->index(leftRow, columnHeaderIndex, QModelIndex());
+           const QModelIndex rightIndex = sourceModel()->index(rightRow, columnHeaderIndex, QModelIndex());
+
+           const QString leftArtist = sourceModel()->
+
+
+        }
     }
 
     return false;
 }
+*/
+
 
 /*
 bool artistLessThan()

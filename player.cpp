@@ -52,9 +52,18 @@ Player::Player(QWidget *parent) :
     LibraryPlaylistModel *sortmodel = new LibraryPlaylistModel(this);
     sortmodel->setSourceModel(libraryModel);
     //sortmodel->printRows();
-    sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
+    //sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
+
+/*
+    QSortFilterProxyModel *sortmodel = new QSortFilterProxyModel(this);
+    sortmodel->setSourceModel(libraryModel);
+*/
+    sortmodel->setDynamicSortFilter(true);
+    sortmodel->sort(2);
     ui->playlistTableView->setModel(sortmodel);
-    //ui->playlistTableView->setSortingEnabled(true);
+    ui->playlistTableView->setSortingEnabled(true);
+    //sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
+
 }
 
 

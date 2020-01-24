@@ -14,16 +14,20 @@ protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
-    const int TRACK_ID_COLUMN = 0;
-    const int TITLE_COLUMN = 1;
-    const int ARTIST_COLUMN = 2;
-    const int ALBUM_COLUMN = 3;
-    const int TRACK_NUMBER_COLUMN = 4;
-    const int YEAR_COLUMN = 5;
-    const int GENRE_COLUMN = 6;
-    const int DURATION_COLUMN = 7;
-    const int LOCATION_COLUMN = 8;
+    enum class ColumnHeader
+    {
+        trackId = 0,
+        title = 1,
+        artist = 2,
+        album = 3,
+        trackNum = 4,
+        year = 5,
+        genre = 6,
+        duration = 7,
+        location = 8
+    };
 
+    const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
 };
 
 #endif // LIBRARYPLAYLISTMODEL_H
