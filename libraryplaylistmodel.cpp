@@ -5,9 +5,9 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
+/*
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
-
     QVariant leftData = sourceModel()->data(left);
     QVariant rightData = sourceModel()->data(right);
 
@@ -46,39 +46,44 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     }
     return false;
 }
+*/
 
-/*
+
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
+    qDebug() << "SORTING BY ARTISTS";
+    const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
+
     const int leftRow = left.row();
     const int rightRow = right.row();
-
-
-    const int SORTING_COLUMN = left.column();
-    if (SORTING_COLUMN == static_cast<int>(ColumnHeader::artist))
+    for (const ColumnHeader &columnHeader : artistSortPriority)
     {
-        qDebug() << "SORTING BY ARTISTS";
-        for (const ColumnHeader &columnHeader : artistSortPriority)
+        qDebug() << "i is " << static_cast<int>(columnHeader);
+        const int columnToCompare = static_cast<int>(columnHeader);
+        const QModelIndex leftIndex = sourceModel()->index(leftRow, columnToCompare, QModelIndex());
+        const QModelIndex rightIndex = sourceModel()->index(rightRow, columnToCompare, QModelIndex());
+
+        const QVariant leftData = sourceModel()->data(leftIndex);
+        const QVariant rightData = sourceModel()->data(rightIndex);
+
+        if (leftData != rightData)
         {
-           qDebug() << "i is " << static_cast<int>(columnHeader);
-           const int columnHeaderIndex = static_cast<int>(columnHeader);
-           const QModelIndex leftIndex = sourceModel()->index(leftRow, columnHeaderIndex, QModelIndex());
-           const QModelIndex rightIndex = sourceModel()->index(rightRow, columnHeaderIndex, QModelIndex());
-
-           const QString leftArtist = sourceModel()->
-
-
+            return leftData < rightData;
         }
-    }
 
+    }
     return false;
 }
-*/
+
 
 
 /*
 bool artistLessThan()
 {
+    List of priority when sorting by artist. I.e., if sorting by artist, first sort by the artist column.
+    // If two artists are the same, then use the album column to determine an order.
+    const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
+
 }
 */
 

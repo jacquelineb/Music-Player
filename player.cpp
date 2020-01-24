@@ -61,7 +61,7 @@ Player::Player(QWidget *parent) :
     sortmodel->setDynamicSortFilter(true);
     sortmodel->sort(2);
     ui->playlistTableView->setModel(sortmodel);
-    ui->playlistTableView->setSortingEnabled(true);
+    //ui->playlistTableView->setSortingEnabled(true);
     //sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
 
 }

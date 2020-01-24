@@ -27,7 +27,6 @@ private:
         location = 8
     };
 
-    const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
 };
 
 #endif // LIBRARYPLAYLISTMODEL_H
