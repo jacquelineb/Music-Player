@@ -14,7 +14,7 @@ protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
-    enum class ColumnHeader
+    enum class ColumnHeader : int
     {
         trackId = 0,
         title = 1,
@@ -26,6 +26,8 @@ private:
         duration = 7,
         location = 8
     };
+
+    bool artistLessThan(const QModelIndex &left, const QModelIndex &right) const;
 
 };
 

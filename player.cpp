@@ -28,42 +28,20 @@ Player::Player(QWidget *parent) :
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
 
-    initializeLibraryModel();
+    initializeLibraryModels();
     initializeLibraryPlaylist();
     mediaPlayer->setPlaylist(playlist);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
     connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
     connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
-    //initializeLibraryTableView();
-    connect(ui->playlistTableView, &QTableView::doubleClicked, this, &Player::playDoubleClickedTrack);
+    initializeLibraryTableView();
+    connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
 
     // Change this later
     mediaToBeAdded = new QMediaPlayer(this);
     connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
 
-
-    /*
-    QSortFilterProxyModel *proxymodel = new QSortFilterProxyModel;
-    proxymodel->setSourceModel(libraryModel);
-    ui->playlistTableView->setModel(proxymodel);
-    */
-
-
-    LibraryPlaylistModel *sortmodel = new LibraryPlaylistModel(this);
-    sortmodel->setSourceModel(libraryModel);
-    //sortmodel->printRows();
-    //sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
-
-/*
-    QSortFilterProxyModel *sortmodel = new QSortFilterProxyModel(this);
-    sortmodel->setSourceModel(libraryModel);
-*/
-    sortmodel->setDynamicSortFilter(true);
-    sortmodel->sort(2);
-    ui->playlistTableView->setModel(sortmodel);
-    //ui->playlistTableView->setSortingEnabled(true);
-    //sortmodel->sort(2, Qt::SortOrder::AscendingOrder);
-
+    qDebug() << "reached end of Player()";
 }
 
 
@@ -73,7 +51,7 @@ Player::~Player()
     delete mediaPlayer; // Not sure if I actually need this
     delete mediaToBeAdded;
     destroyPlaylist();
-    destroyLibraryModel();
+    destroyLibraryModels();
 }
 
 
@@ -91,50 +69,71 @@ void Player::restorePlayerSettings()
 }
 
 
-void Player::initializeLibraryModel()
+void Player::initializeLibraryModels()
 {
-    libraryModel = new QSqlRelationalTableModel(this);
-    libraryModel->setTable("Track");
-    libraryModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
-    libraryModel->select();
+    librarySourceModel = new QSqlRelationalTableModel(this);
+    librarySourceModel->setTable("Track");
+    librarySourceModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
+    librarySourceModel->select();
 
-    libraryModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
-    libraryModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
-    libraryModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
-    libraryModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
-    libraryModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
-    libraryModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
-    libraryModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
-    libraryModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
-    libraryModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+    libraryViewModel = new LibraryPlaylistModel(this);
+    libraryViewModel->setSourceModel(librarySourceModel);
+    libraryViewModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
+    libraryViewModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
+    libraryViewModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
+    libraryViewModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
+    libraryViewModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
+    libraryViewModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
+    libraryViewModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
+    libraryViewModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
+    libraryViewModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+    libraryViewModel->setDynamicSortFilter(true);
+
+    libraryViewModel->sort(2);
 }
 
 
 void Player::initializeLibraryPlaylist()
 {
     playlist = new QMediaPlaylist(this);
-    for (int i = 0; i < libraryModel->rowCount(); i++)
+    for (int i = 0; i < libraryViewModel->rowCount(); i++)
     {
-        QString trackLocation = libraryModel->data(libraryModel->index(i,8)).toString();
+        QString trackLocation = libraryViewModel->data(libraryViewModel->index(i,8)).toString();
         qDebug() << trackLocation;
         playlist->addMedia(QUrl(trackLocation));
     }
 }
 
 
+void Player::headerClicked(int index)
+{
+    qDebug() << index;
+    //ui->playlistTreeView->sortByColumn(2); // PROBABLY SHOULDN'T SORT THE TREE, SORT THE MODEL. RIGHT NOW THE DOUBLE CLICKED SONG DOES NOT MATCH WHAT GETS PLAYED
+}
+
 void Player::initializeLibraryTableView()
 {
-    ui->playlistTableView->setModel(libraryModel);
-    ui->playlistTableView->setColumnHidden(0, true);
-    ui->playlistTableView->setColumnHidden(4, true);
-    ui->playlistTableView->setColumnHidden(5, true);
-    ui->playlistTableView->setColumnHidden(8, true);
+    ui->playlistTreeView->setModel(libraryViewModel);
+    /*
+    ui->playlistTreeView->setColumnHidden(0, true);
+    ui->playlistTreeView->setColumnHidden(4, true);
+    ui->playlistTreeView->setColumnHidden(5, true);
+    ui->playlistTreeView->setColumnHidden(8, true);
+    */
+
+    // PROBABLY SHOULDN'T SORT THE TREE, SORT THE MODEL. RIGHT NOW THE DOUBLE CLICKED SONG DOES NOT MATCH WHAT GETS PLAYED
+    //ui->playlistTreeView->setSortingEnabled(true);
+    //ui->playlistTreeView->sortByColumn(2, Qt::SortOrder::AscendingOrder);
+
+    //QHeaderView * header = ui->playlistTreeView->header();
+    //connect(header, &QHeaderView::sectionClicked, this, &Player::headerClicked);
 }
 
 
-void Player::destroyLibraryModel()
+void Player::destroyLibraryModels()
 {
-    delete libraryModel;
+    delete librarySourceModel;
+    delete libraryViewModel;
 }
 
 
@@ -155,7 +154,7 @@ void Player::playOrPauseMedia()
         if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
         {
             // If there is a song(s) highlighted, start playback from the first highlighted song.
-            QModelIndexList highlightedTrackRows = ui->playlistTableView->selectionModel()->selectedRows();
+            QModelIndexList highlightedTrackRows = ui->playlistTreeView->selectionModel()->selectedRows();
             if (!highlightedTrackRows.isEmpty())
             {
                 playlist->setCurrentIndex(highlightedTrackRows.first().row());
@@ -168,6 +167,7 @@ void Player::playOrPauseMedia()
 
 void Player::playDoubleClickedTrack(const QModelIndex &index)
 {
+    qDebug() << index.row();
     playlist->setCurrentIndex(index.row());
     mediaPlayer->play();
 }
@@ -308,6 +308,10 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
         // error checking?
         // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error())
     }
+    else if (status == QMediaPlayer::LoadingMedia)
+    {
+        qDebug() << "LOading media..";
+    }
 }
 
 
@@ -325,7 +329,7 @@ void Player::onStateChanged(QMediaPlayer::State state)
     // else it is in stopped state.... do something
     else if (state == QMediaPlayer::State::StoppedState)
     {
-        ui->currentTrackLabel->setText("Play something?");
+        ui->currentTrackLabel->clear();
     }
 
 }

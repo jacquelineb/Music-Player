@@ -6,6 +6,8 @@
 #include <QSettings>
 #include <QSqlRelationalTableModel>
 
+#include "libraryplaylistmodel.h"
+
 namespace Ui {
 class Player;
 }
@@ -23,7 +25,8 @@ private:
     Ui::Player *ui;
     QMediaPlayer *mediaPlayer = nullptr;
     QMediaPlayer *mediaToBeAdded = nullptr;
-    QSqlRelationalTableModel *libraryModel = nullptr;
+    QSqlRelationalTableModel *librarySourceModel = nullptr;
+    LibraryPlaylistModel *libraryViewModel = nullptr;
     QMediaPlaylist *playlist = nullptr;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
@@ -31,8 +34,8 @@ private:
     void initializeMediaPlayer();
     void restorePlayerSettings();
     void savePlayerSettings();
-    void initializeLibraryModel();
-    void destroyLibraryModel();
+    void initializeLibraryModels();
+    void destroyLibraryModels();
     void initializeLibraryPlaylist();
     void destroyPlaylist();
     void initializeLibraryTableView();
@@ -43,6 +46,8 @@ private slots:
     void onStateChanged(QMediaPlayer::State state);
     void playDoubleClickedTrack(const QModelIndex &index);
     void playOrPauseMedia();
+
+    void headerClicked(int index);
 };
 
 #endif // PLAYER_H
