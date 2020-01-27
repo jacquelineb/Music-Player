@@ -5,81 +5,21 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
-/*
-bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
-{
-    QVariant leftData = sourceModel()->data(left);
-    QVariant rightData = sourceModel()->data(right);
-
-    const int sortingColumn  = left.column();
-    const int artistColumn = static_cast<int>(ColumnHeader::artist);
-    if (sortingColumn == artistColumn)
-    {
-        QString leftArtist = leftData.toString();
-        QString rightArtist = rightData.toString();
-        if (leftArtist == rightArtist)
-        {
-            const int leftRow = left.row();
-            const int rightRow = right.row();
-            const int albumColumn = static_cast<int>(ColumnHeader::album);
-            QString leftAlbum = sourceModel()->data(index(leftRow, albumColumn)).toString();
-            QString rightAlbum = sourceModel()->data(index(rightRow, albumColumn)).toString();
-
-            if (leftAlbum == rightAlbum)
-            {
-                const int trackNumColumn = static_cast<int>(ColumnHeader::trackNum);
-                int leftTrackNum = sourceModel()->data(index(leftRow, trackNumColumn)).toInt();
-                int rightTrackNum = sourceModel()->data(index(rightRow, trackNumColumn)).toInt();
-
-                if (leftTrackNum == rightTrackNum)
-                {
-                    const int titleColumn = static_cast<int>(ColumnHeader::title);
-                    QString leftTrackName = sourceModel()->data(index(leftRow, titleColumn)).toString();
-                    QString rightTrackName = sourceModel()->data(index(rightRow, titleColumn)).toString();
-                    return leftTrackName < rightTrackName;
-                }
-                return leftTrackNum < rightTrackNum;
-            }
-            return leftAlbum < rightAlbum;
-        }
-        return leftArtist < rightArtist;
-    }
-    return false;
-}
-*/
-
 
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
-
     if (sortingColumn == static_cast<int>(ColumnHeader::artist))
     {
-        /*
-        const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
-        const int leftRow = left.row();
-        const int rightRow = right.row();
-        for (const ColumnHeader &columnHeader : artistSortPriority)
-        {
-            qDebug() << "i is " << static_cast<int>(columnHeader);
-            const int columnToCompare = static_cast<int>(columnHeader);
-            const QModelIndex leftIndex = sourceModel()->index(leftRow, columnToCompare, QModelIndex());
-            const QModelIndex rightIndex = sourceModel()->index(rightRow, columnToCompare, QModelIndex());
-
-            const QVariant leftData = sourceModel()->data(leftIndex);
-            const QVariant rightData = sourceModel()->data(rightIndex);
-
-            if (leftData != rightData)
-            {
-                return leftData < rightData;
-            }
-
-        }
-        */
         return artistLessThan(left, right);
     }
     else if (sortingColumn == static_cast<int>(ColumnHeader::album))
     {
+    /* YOU CAN PROBABLY IMPLEMENT A FUNCTION SIMILAR TO artistLessThan THAT WILL WORK FOR BOTH artistLessThan and
+    * albumLessThan, since they're essentially the same, just with different priority.
+    * just need to pass in the priority list (i.e artistSortPriorty or albumSortPriority)
+    * signature would be something like priorityBasedLessThan(QModelIndex&, QModelIndex&, priorityList);
+    */
         // sort by album, using multiple columns
         const QList<ColumnHeader> albumSortPriority = {ColumnHeader::album, ColumnHeader::trackNum, ColumnHeader::artist};
         const int leftRow = left.row();
@@ -106,12 +46,6 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     return leftData < rightData;
 }
 
-/* YOU CAN PROBABLY IMPLEMENT A FUNCTION SIMILAR TO artistLessThan THAT WILL WORK FOR BOTH artistLessThan and
- * albumLessThan, since they're essentially the same, just with different priority.
- * just need to pass in the priority list (i.e artistSortPriorty or albumSortPriority)
- * signature would be something like priorityBasedLessThan(QModelIndex&, QModelIndex&, priorityList);
-*/
-
 
 bool LibraryPlaylistModel::artistLessThan(const QModelIndex &left, const QModelIndex &right) const
 {
@@ -126,7 +60,6 @@ bool LibraryPlaylistModel::artistLessThan(const QModelIndex &left, const QModelI
         const int columnToCompare = static_cast<int>(columnHeader);
         const QModelIndex leftIndex = sourceModel()->index(leftRow, columnToCompare, QModelIndex());
         const QModelIndex rightIndex = sourceModel()->index(rightRow, columnToCompare, QModelIndex());
-
         const QVariant leftData = sourceModel()->data(leftIndex);
         const QVariant rightData = sourceModel()->data(rightIndex);
 
@@ -136,26 +69,4 @@ bool LibraryPlaylistModel::artistLessThan(const QModelIndex &left, const QModelI
         }
     }
     return false;
-}
-
-
-
-void LibraryPlaylistModel::printRows()
-{
-    qDebug() << "Printing rows";
-
-    for (int i = 0; i < rowCount(); i++)
-    {
-        QString rowData;
-        for (int j = 0; j < columnCount(); j++)
-        {
-            QString rd = data(index(i,j), Qt::DisplayRole).toString();
-            rowData += " " + rd;
-        }
-        qDebug() << rowData;
-    }
-
-
-    qDebug() << data(index(0, 2)).toString();
-    qDebug() << sourceModel()->data(index(0,2));
 }

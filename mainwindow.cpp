@@ -12,9 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    qDebug() << "MainWindow 15";
     restoreWindowState();
-    qDebug() << "MainWindow 17";
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &MainWindow::onAddToLibraryActionTriggered);
 }
 
@@ -32,7 +30,6 @@ void MainWindow::onAddToLibraryActionTriggered()
 
 void MainWindow::restoreWindowState()
 {
-    qDebug() << "RESTORING WINDOW STATE";
     move(settings.value("MainWindow/position", pos()).toPoint());
     if (settings.value("MainWindow/isMaximized", true).toBool())
     {
@@ -46,7 +43,6 @@ void MainWindow::restoreWindowState()
 
 void MainWindow::saveWindowState()
 {
-    qDebug() << "Saving Window State";
     settings.setValue("MainWindow/position", pos());
     settings.setValue("MainWindow/isMaximized", isMaximized());
     settings.setValue("MainWindow/size", size());

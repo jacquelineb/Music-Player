@@ -10,7 +10,6 @@
 #include <QSqlQuery>
 #include <QSqlError> // maybe delete this later
 #include <QMediaPlaylist>
-#include <QSortFilterProxyModel> // maybe delete this later
 
 #include "libraryplaylistmodel.h" //
 
@@ -19,29 +18,15 @@ Player::Player(QWidget *parent) :
     ui(new Ui::Player)
 {
     ui->setupUi(this);
-    initializeMediaPlayer();
-    connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
-    connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
-    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
-    connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
-    connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
-    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
-    connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
-
     initializeLibraryModels();
+    initializeLibraryTreeView();
     initializeLibraryPlaylist();
-    mediaPlayer->setPlaylist(playlist);
-    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
-    connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
-    connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
-    initializeLibraryTableView();
-    connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
+    initializeMediaPlayer();
+    setUpConnections();
 
     // Change this later
     mediaToBeAdded = new QMediaPlayer(this);
     connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
-
-    qDebug() << "reached end of Player()";
 }
 
 
@@ -50,22 +35,9 @@ Player::~Player()
     delete ui;
     delete mediaPlayer; // Not sure if I actually need this
     delete mediaToBeAdded;
+    destroyMediaPlayer();
     destroyPlaylist();
     destroyLibraryModels();
-}
-
-
-void Player::initializeMediaPlayer()
-{
-    mediaPlayer = new QMediaPlayer(this);
-    restorePlayerSettings();
-}
-
-
-void Player::restorePlayerSettings()
-{
-    /* Restore volume, last playlist, etc. */
-    mediaPlayer->setVolume(ui->controls->getVolume());
 }
 
 
@@ -88,38 +60,20 @@ void Player::initializeLibraryModels()
     libraryViewModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
     libraryViewModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
     libraryViewModel->setDynamicSortFilter(true);
-
-    libraryViewModel->sort(2);
 }
 
 
-void Player::initializeLibraryPlaylist()
-{
-    playlist = new QMediaPlaylist(this);
-    for (int i = 0; i < libraryViewModel->rowCount(); i++)
-    {
-        QString trackLocation = libraryViewModel->data(libraryViewModel->index(i,8)).toString();
-        qDebug() << trackLocation;
-        playlist->addMedia(QUrl(trackLocation));
-    }
-}
-
-
-void Player::headerClicked(int index)
-{
-    qDebug() << index;
-    //ui->playlistTreeView->sortByColumn(2); // PROBABLY SHOULDN'T SORT THE TREE, SORT THE MODEL. RIGHT NOW THE DOUBLE CLICKED SONG DOES NOT MATCH WHAT GETS PLAYED
-}
-
-void Player::initializeLibraryTableView()
+void Player::initializeLibraryTreeView()
 {
     ui->playlistTreeView->setModel(libraryViewModel);
+    ui->playlistTreeView->sortByColumn(2, Qt::SortOrder::AscendingOrder);
     /*
     ui->playlistTreeView->setColumnHidden(0, true);
     ui->playlistTreeView->setColumnHidden(4, true);
     ui->playlistTreeView->setColumnHidden(5, true);
     ui->playlistTreeView->setColumnHidden(8, true);
     */
+    //ui->playlistTreeView->setSortingEnabled(false);
 
     // PROBABLY SHOULDN'T SORT THE TREE, SORT THE MODEL. RIGHT NOW THE DOUBLE CLICKED SONG DOES NOT MATCH WHAT GETS PLAYED
     //ui->playlistTreeView->setSortingEnabled(true);
@@ -130,16 +84,67 @@ void Player::initializeLibraryTableView()
 }
 
 
+void Player::initializeLibraryPlaylist()
+{
+    playlist = new QMediaPlaylist(this);
+    for (int i = 0; i < libraryViewModel->rowCount(); i++)
+    {
+        QModelIndex index = libraryViewModel->index(i, 8, QModelIndex());
+        QString trackLocation = libraryViewModel->data(index).toString();
+        playlist->addMedia(QUrl::fromLocalFile(trackLocation));
+    }
+
+}
+
+
+void Player::initializeMediaPlayer()
+{
+    mediaPlayer = new QMediaPlayer(this);
+    restorePlayerSettings();
+    qDebug() << "setting playlist";
+    mediaPlayer->setPlaylist(playlist);
+}
+
+void Player::restorePlayerSettings()
+{
+    /* Restore volume, last playlist, etc. */
+    mediaPlayer->setVolume(ui->controls->getVolume());
+}
+
+
+void Player::setUpConnections()
+{
+    connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
+    connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
+
+    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
+    connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
+    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
+    connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
+    connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
+
+    connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
+}
+
+
 void Player::destroyLibraryModels()
 {
-    delete librarySourceModel;
     delete libraryViewModel;
+    delete librarySourceModel;
 }
 
 
 void Player::destroyPlaylist()
 {
     delete playlist;
+}
+
+void Player::destroyMediaPlayer()
+{
+    delete mediaPlayer;
 }
 
 
@@ -167,7 +172,6 @@ void Player::playOrPauseMedia()
 
 void Player::playDoubleClickedTrack(const QModelIndex &index)
 {
-    qDebug() << index.row();
     playlist->setCurrentIndex(index.row());
     mediaPlayer->play();
 }
@@ -303,14 +307,21 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 
         //mediaPlayer->play();
     }
-    else if (status == QMediaPlayer::InvalidMedia || status == QMediaPlayer::UnknownMediaStatus)
+    else if (status == QMediaPlayer::InvalidMedia)
     {
+        qDebug() << "Line 308: " << status;
+        qDebug() << "Error loading file";
         // error checking?
         // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error())
+        // As example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
     }
     else if (status == QMediaPlayer::LoadingMedia)
     {
         qDebug() << "LOading media..";
+    }
+    else
+    {
+        qDebug() << "Line 319: " << status;
     }
 }
 

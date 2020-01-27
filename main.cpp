@@ -70,11 +70,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    qDebug() << "CONSTRUCTING WINDOW";
     MainWindow w;
-    qDebug() << "SHOWING WINDOW";
     w.show();
-    qDebug() << "test";
 
     return a.exec();
 }

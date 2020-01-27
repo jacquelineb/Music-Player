@@ -8,7 +8,6 @@ class LibraryPlaylistModel : public QSortFilterProxyModel
     Q_OBJECT
 public:
     LibraryPlaylistModel(QObject *parent = nullptr);
-    void printRows();
 
 protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
@@ -28,7 +27,6 @@ private:
     };
 
     bool artistLessThan(const QModelIndex &left, const QModelIndex &right) const;
-
 };
 
 #endif // LIBRARYPLAYLISTMODEL_H

@@ -23,22 +23,25 @@ public:
 
 private:
     Ui::Player *ui;
-    QMediaPlayer *mediaPlayer = nullptr;
-    QMediaPlayer *mediaToBeAdded = nullptr;
     QSqlRelationalTableModel *librarySourceModel = nullptr;
     LibraryPlaylistModel *libraryViewModel = nullptr;
+    QMediaPlayer *mediaPlayer = nullptr;
+    QMediaPlayer *mediaToBeAdded = nullptr;
     QMediaPlaylist *playlist = nullptr;
-    QSettings settings{"session.ini", QSettings::Format::IniFormat};
     qint64 position_ = 0;
+    QSettings settings{"session.ini", QSettings::Format::IniFormat};
+
     void closeEvent(QCloseEvent *event);
-    void initializeMediaPlayer();
-    void restorePlayerSettings();
-    void savePlayerSettings();
-    void initializeLibraryModels();
     void destroyLibraryModels();
-    void initializeLibraryPlaylist();
+    void destroyMediaPlayer();
     void destroyPlaylist();
-    void initializeLibraryTableView();
+    void initializeLibraryModels();
+    void initializeLibraryPlaylist();
+    void initializeLibraryTreeView();
+    void initializeMediaPlayer();
+    void savePlayerSettings();
+    void setUpConnections();
+    void restorePlayerSettings();
 
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
@@ -46,8 +49,6 @@ private slots:
     void onStateChanged(QMediaPlayer::State state);
     void playDoubleClickedTrack(const QModelIndex &index);
     void playOrPauseMedia();
-
-    void headerClicked(int index);
 };
 
 #endif // PLAYER_H
