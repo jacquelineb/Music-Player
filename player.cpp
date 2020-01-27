@@ -33,11 +33,6 @@ Player::Player(QWidget *parent) :
 Player::~Player()
 {
     delete ui;
-    delete mediaPlayer; // Not sure if I actually need this
-    delete mediaToBeAdded;
-    destroyMediaPlayer();
-    destroyPlaylist();
-    destroyLibraryModels();
 }
 
 
@@ -127,24 +122,6 @@ void Player::setUpConnections()
     connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
 
     connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
-}
-
-
-void Player::destroyLibraryModels()
-{
-    delete libraryViewModel;
-    delete librarySourceModel;
-}
-
-
-void Player::destroyPlaylist()
-{
-    delete playlist;
-}
-
-void Player::destroyMediaPlayer()
-{
-    delete mediaPlayer;
 }
 
 

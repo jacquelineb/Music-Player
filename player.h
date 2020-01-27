@@ -32,9 +32,6 @@ private:
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
 
     void closeEvent(QCloseEvent *event);
-    void destroyLibraryModels();
-    void destroyMediaPlayer();
-    void destroyPlaylist();
     void initializeLibraryModels();
     void initializeLibraryPlaylist();
     void initializeLibraryTreeView();
