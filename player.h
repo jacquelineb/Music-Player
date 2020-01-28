@@ -40,12 +40,19 @@ private:
     void setUpConnections();
     void restorePlayerSettings();
 
+    void insertToTrackTable(QString const& title, int artistId, QString const& album,
+                        int trackNum, int year, QString const& genre, int duration,
+                        QString const& location);
+
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
     void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onStateChanged(QMediaPlayer::State state);
     void playDoubleClickedTrack(const QModelIndex &index);
     void playOrPauseMedia();
+
+
+    void playlistIndexChanged(int position);
 };
 
 #endif // PLAYER_H

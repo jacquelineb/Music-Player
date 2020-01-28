@@ -10,6 +10,9 @@
 #include <QSqlQuery>
 #include <QSqlError> // maybe delete this later
 #include <QMediaPlaylist>
+#include <QSqlRecord>
+#include <QSqlField>
+#include <QSqlIndex> //
 
 #include "libraryplaylistmodel.h" //
 
@@ -68,14 +71,6 @@ void Player::initializeLibraryTreeView()
     ui->playlistTreeView->setColumnHidden(5, true);
     ui->playlistTreeView->setColumnHidden(8, true);
     */
-    //ui->playlistTreeView->setSortingEnabled(false);
-
-    // PROBABLY SHOULDN'T SORT THE TREE, SORT THE MODEL. RIGHT NOW THE DOUBLE CLICKED SONG DOES NOT MATCH WHAT GETS PLAYED
-    //ui->playlistTreeView->setSortingEnabled(true);
-    //ui->playlistTreeView->sortByColumn(2, Qt::SortOrder::AscendingOrder);
-
-    //QHeaderView * header = ui->playlistTreeView->header();
-    //connect(header, &QHeaderView::sectionClicked, this, &Player::headerClicked);
 }
 
 
@@ -88,7 +83,6 @@ void Player::initializeLibraryPlaylist()
         QString trackLocation = libraryViewModel->data(index).toString();
         playlist->addMedia(QUrl::fromLocalFile(trackLocation));
     }
-
 }
 
 
@@ -96,7 +90,6 @@ void Player::initializeMediaPlayer()
 {
     mediaPlayer = new QMediaPlayer(this);
     restorePlayerSettings();
-    qDebug() << "setting playlist";
     mediaPlayer->setPlaylist(playlist);
 }
 
@@ -114,14 +107,42 @@ void Player::setUpConnections()
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
-
+    connect(playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistIndexChanged);
+    connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
     connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
     connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
 
-    connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
+
+}
+
+void Player::playlistIndexChanged(int position)
+{
+    qDebug() << "Playlist index changed";
+    qDebug() << position;
+    if (position != -1)
+    {
+        QModelIndex index = libraryViewModel->index(position, 0);
+        ui->playlistTreeView->selectionModel()->select(index, QItemSelectionModel::SelectionFlag::Rows);
+        ui->playlistTreeView->setCurrentIndex(index);
+
+        QString currTrack = libraryViewModel->data(libraryViewModel->index(position, 1)).toString();
+        QString currArtist = libraryViewModel->data(libraryViewModel->index(position, 2)).toString();
+
+        QString currentlyPlayingText = "Now Playing: ";
+        if (!currArtist.isEmpty())
+        {
+            currentlyPlayingText += currArtist + " - ";
+        }
+        currentlyPlayingText += currTrack;
+        ui->currentTrackLabel->setText(currentlyPlayingText);
+    }
+    else
+    {
+        ui->currentTrackLabel->clear();
+    }
 }
 
 
@@ -193,17 +214,18 @@ int getIdFromArtistTable(QString const& artistName)
     query.prepare("SELECT id FROM Artist "
                   "WHERE name = :artist");
     query.bindValue(":artist", artistName); // exec() overwrites the placeholder with data, so rebinding :artist to artist is necessary.
-    query.exec();
-    query.first();
-    return query.value("id").toInt();
+    if (query.exec() && query.first())
+    {
+        return query.value("id").toInt();
+    }
+    return -1;
 }
 
 
-void insertToTrackTable(QString const& title, int artistId, QString const& album,
-                        int trackNum, int year, QString const& genre, int duration,
-                        QString const& location)
+void Player::insertToTrackTable(QString const& title, int artistId, QString const& album,
+                                int trackNum, int year, QString const& genre, int duration,
+                                QString const& location)
 {
-
     QSqlQuery query;
     query.prepare("INSERT INTO Track (title, artist_id, album, track_num, year, genre, duration, location) "
                   "VALUES (:title, :artist_id, :album, :track_num, :year, :genre, :duration, :location)");
@@ -218,13 +240,20 @@ void insertToTrackTable(QString const& title, int artistId, QString const& album
     if (query.exec())
     {
         qDebug() << "Line 211: Succesful exec\n";
+        librarySourceModel->select();
+
+        // Update the playlist with the new track.
+        QModelIndex srcIndexOfNewTrack = librarySourceModel->index(librarySourceModel->rowCount()-1, 0, QModelIndex());
+        QModelIndex viewIndexOfNewTrack = libraryViewModel->mapFromSource(srcIndexOfNewTrack);
+        playlist->insertMedia(viewIndexOfNewTrack.row(), QUrl::fromLocalFile(location));
     }
     else
     {
         qDebug() << "Line 211: Failed to exec\n";
+        qDebug() << query.lastError();
     }
-
 }
+
 
 void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
@@ -237,10 +266,10 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
             title = QFileInfo(location).completeBaseName();
         }
         QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString() + "";
-        /*  The + "" is necessary because if the metadata for the arguement passed to metaData() doesn't exist,
-         *  then using .toString() on the result of metaData() will result in a NULL string. The + "" will convert
-         *  this into an emptry string, which is what I need because I want an empty string to be a valid input (and
-         *  for NULL to be invalid input) for the name field of the Artist table in the media database and NULL input to be invalid.
+        /* The + "" is necessary because if the metadata for the arguement passed to metaData() doesn't exist,
+         * then using .toString() on the result of metaData() will result in a NULL string. The + "" will convert
+         * this into an emptry string, which is what I need because I want an empty string to be a valid input (and
+         * for NULL to be invalid input) for the name field of the Artist table in the media database and NULL input to be invalid.
         */
 
         QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
@@ -260,7 +289,11 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 
         insertToArtistTable(artist);
         int artistId = getIdFromArtistTable(artist);
-        insertToTrackTable(title, artistId, album, trackNum, year, genre, duration, location);
+        qDebug() << "artist id is: " << artistId;
+        if (artistId != -1)
+        {
+            insertToTrackTable(title, artistId, album, trackNum, year, genre, duration, location);
+        }
     }
 }
 
@@ -286,7 +319,7 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     }
     else if (status == QMediaPlayer::InvalidMedia)
     {
-        qDebug() << "Line 308: " << status;
+        qDebug() << "Line 282: " << status;
         qDebug() << "Error loading file";
         // error checking?
         // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error())
@@ -296,9 +329,21 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     {
         qDebug() << "LOading media..";
     }
+    else if (status == QMediaPlayer::BufferedMedia)
+    {
+        qDebug() << "Buffered Media...";
+        qDebug() << "change highlighted song";
+        //ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
+        //ui->playlistTreeView->selectRow()
+
+    }
+    else if (status == QMediaPlayer::NoMedia)
+    {
+        //ui->currentTrackLabel->clear();
+    }
     else
     {
-        qDebug() << "Line 319: " << status;
+        qDebug() << "Line 294: " << status;
     }
 }
 
@@ -309,7 +354,7 @@ void Player::onStateChanged(QMediaPlayer::State state)
     qDebug() << "state: " << mediaPlayer->state();
     if (state == QMediaPlayer::State::PlayingState)
     {
-        ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
+        //ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
         // The above might not always work because a file might not have the meta data for Title available, so an empty string might be getting printed.
         // Instead, just get the artist and title by getting the current index in the playlist and then getting the data from this index in the playlist model.
     }
@@ -317,7 +362,7 @@ void Player::onStateChanged(QMediaPlayer::State state)
     // else it is in stopped state.... do something
     else if (state == QMediaPlayer::State::StoppedState)
     {
-        ui->currentTrackLabel->clear();
+        //ui->currentTrackLabel->clear();
     }
 
 }

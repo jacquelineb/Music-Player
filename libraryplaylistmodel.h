@@ -2,6 +2,7 @@
 #define LIBRARYPLAYLISTMODEL_H
 
 #include <QSortFilterProxyModel>
+#include <QSqlRelationalTableModel>
 
 class LibraryPlaylistModel : public QSortFilterProxyModel
 {

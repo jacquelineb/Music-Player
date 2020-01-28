@@ -21,7 +21,7 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     * signature would be something like priorityBasedLessThan(QModelIndex&, QModelIndex&, priorityList);
     */
         // sort by album, using multiple columns
-        const QList<ColumnHeader> albumSortPriority = {ColumnHeader::album, ColumnHeader::trackNum, ColumnHeader::artist};
+        const QList<ColumnHeader> albumSortPriority = {ColumnHeader::album, ColumnHeader::artist, ColumnHeader::trackNum};
         const int leftRow = left.row();
         const int rightRow = right.row();
         for (const ColumnHeader &columnHeader : albumSortPriority)
