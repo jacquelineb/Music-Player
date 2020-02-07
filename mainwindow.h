@@ -20,9 +20,11 @@ public:
 private:
     Ui::MainWindow *ui;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
+
     void closeEvent(QCloseEvent *event);
     void restoreWindowState();
     void saveWindowState();
+
 private slots:
     void onAddToLibraryActionTriggered();
 };

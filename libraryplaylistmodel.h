@@ -7,13 +7,14 @@
 class LibraryPlaylistModel : public QSortFilterProxyModel
 {
     Q_OBJECT
+
 public:
     LibraryPlaylistModel(QObject *parent = nullptr);
-
 protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
+    bool artistLessThan(const QModelIndex &left, const QModelIndex &right) const;
     enum class ColumnHeader : int
     {
         trackId = 0,
@@ -26,8 +27,6 @@ private:
         duration = 7,
         location = 8
     };
-
-    bool artistLessThan(const QModelIndex &left, const QModelIndex &right) const;
 };
 
 #endif // LIBRARYPLAYLISTMODEL_H

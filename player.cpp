@@ -32,12 +32,10 @@ Player::Player(QWidget *parent) :
     connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
 }
 
-
 Player::~Player()
 {
     delete ui;
 }
-
 
 void Player::initializeLibraryModels()
 {
@@ -60,7 +58,6 @@ void Player::initializeLibraryModels()
     libraryViewModel->setDynamicSortFilter(true);
 }
 
-
 void Player::initializeLibraryTreeView()
 {
     ui->playlistTreeView->setModel(libraryViewModel);
@@ -73,7 +70,6 @@ void Player::initializeLibraryTreeView()
     */
 }
 
-
 void Player::initializeLibraryPlaylist()
 {
     playlist = new QMediaPlaylist(this);
@@ -84,7 +80,6 @@ void Player::initializeLibraryPlaylist()
         playlist->addMedia(QUrl::fromLocalFile(trackLocation));
     }
 }
-
 
 void Player::initializeMediaPlayer()
 {
@@ -99,55 +94,25 @@ void Player::restorePlayerSettings()
     mediaPlayer->setVolume(ui->controls->getVolume());
 }
 
-
 void Player::setUpConnections()
 {
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
-    connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &Player::onStateChanged);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
-    connect(playlist, &QMediaPlaylist::currentIndexChanged, this, &Player::playlistIndexChanged);
+    connect(playlist, &QMediaPlaylist::currentMediaChanged, this, &Player::updateCurrTrackLabel);
+    connect(playlist, &QMediaPlaylist::currentMediaChanged, this, &Player::updatePlaylistTreeViewSelection);
     connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
     connect(ui->controls, &PlayerControls::prevClicked, playlist, &QMediaPlaylist::previous);
     connect(ui->controls, &PlayerControls::nextClicked, playlist, &QMediaPlaylist::next);
-
-
 }
-
-void Player::playlistIndexChanged(int position)
-{
-    qDebug() << "Playlist index changed";
-    qDebug() << position;
-    if (position != -1)
-    {
-        QModelIndex index = libraryViewModel->index(position, 0);
-        ui->playlistTreeView->selectionModel()->select(index, QItemSelectionModel::SelectionFlag::Rows);
-        ui->playlistTreeView->setCurrentIndex(index);
-
-        QString currTrack = libraryViewModel->data(libraryViewModel->index(position, 1)).toString();
-        QString currArtist = libraryViewModel->data(libraryViewModel->index(position, 2)).toString();
-
-        QString currentlyPlayingText = "Now Playing: ";
-        if (!currArtist.isEmpty())
-        {
-            currentlyPlayingText += currArtist + " - ";
-        }
-        currentlyPlayingText += currTrack;
-        ui->currentTrackLabel->setText(currentlyPlayingText);
-    }
-    else
-    {
-        ui->currentTrackLabel->clear();
-    }
-}
-
 
 void Player::playOrPauseMedia()
 {
+    qDebug() << "Playorpause";
     if (mediaPlayer->state() == QMediaPlayer::State::PlayingState)
     {
         mediaPlayer->pause();
@@ -156,17 +121,23 @@ void Player::playOrPauseMedia()
     {
         if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
         {
-            // If there is a song(s) highlighted, start playback from the first highlighted song.
-            QModelIndexList highlightedTrackRows = ui->playlistTreeView->selectionModel()->selectedRows();
-            if (!highlightedTrackRows.isEmpty())
+            /* If pressing play button from a stopped state,
+             * start playback from the first highlighted song if there is one.
+             * Otherwise just start playback from the beginning of playlist.
+            */
+            int highlightedRow = ui->playlistTreeView->currentIndex().row();
+            if (highlightedRow != -1)
             {
-                playlist->setCurrentIndex(highlightedTrackRows.first().row());
+                playlist->setCurrentIndex(highlightedRow);
+            }
+            else
+            {
+                playlist->setCurrentIndex(0);
             }
         }
         mediaPlayer->play();
     }
 }
-
 
 void Player::playDoubleClickedTrack(const QModelIndex &index)
 {
@@ -174,13 +145,10 @@ void Player::playDoubleClickedTrack(const QModelIndex &index)
     mediaPlayer->play();
 }
 
-
-
 void Player::savePlayerSettings()
 {
     /* Save which playlist was last opened */
 }
-
 
 void Player::closeEvent(QCloseEvent *event)
 {
@@ -189,14 +157,12 @@ void Player::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-
 void Player::addToLibrary(QUrl filename)
 {
     //https://stackoverflow.com/questions/23678748/qtcreator-qmediaplayer-meta-data-returns-blank-qstring
     // above explains why I chose to use a separate QMediaPlayer (addMedia) for adding media to the library.
     mediaToBeAdded->setMedia(filename);
 }
-
 
 void insertToArtistTable(QString const& artistName)
 {
@@ -206,7 +172,6 @@ void insertToArtistTable(QString const& artistName)
     query.bindValue(":artist", artistName);
     query.exec();
 }
-
 
 int getIdFromArtistTable(QString const& artistName)
 {
@@ -220,7 +185,6 @@ int getIdFromArtistTable(QString const& artistName)
     }
     return -1;
 }
-
 
 void Player::insertToTrackTable(QString const& title, int artistId, QString const& album,
                                 int trackNum, int year, QString const& genre, int duration,
@@ -237,8 +201,12 @@ void Player::insertToTrackTable(QString const& title, int artistId, QString cons
     query.bindValue(":genre", genre);
     query.bindValue(":duration", duration);
     query.bindValue(":location", location);
+
     if (query.exec())
     {
+        // Move this code out of here. Make insertToTrackTable a bool function, and then call the below from onAddMediaStatusChanged
+        // if this function returns true.
+
         qDebug() << "Line 211: Succesful exec\n";
         librarySourceModel->select();
 
@@ -246,6 +214,12 @@ void Player::insertToTrackTable(QString const& title, int artistId, QString cons
         QModelIndex srcIndexOfNewTrack = librarySourceModel->index(librarySourceModel->rowCount()-1, 0, QModelIndex());
         QModelIndex viewIndexOfNewTrack = libraryViewModel->mapFromSource(srcIndexOfNewTrack);
         playlist->insertMedia(viewIndexOfNewTrack.row(), QUrl::fromLocalFile(location));
+
+        /* There is currently a bug where if a song in the playlist is already playing and the user decides to add
+         * a new song to the library, if the new song was inserted into the playlist at some index before the current song,
+         * playback will start at the beginning of the playlist. If the new song was inserted into the playlist somewhere
+         * after the currently playing song, playback will continue as normal.
+        */
     }
     else
     {
@@ -253,7 +227,6 @@ void Player::insertToTrackTable(QString const& title, int artistId, QString cons
         qDebug() << query.lastError();
     }
 }
-
 
 void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
@@ -289,7 +262,6 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 
         insertToArtistTable(artist);
         int artistId = getIdFromArtistTable(artist);
-        qDebug() << "artist id is: " << artistId;
         if (artistId != -1)
         {
             insertToTrackTable(title, artistId, album, trackNum, year, genre, duration, location);
@@ -297,24 +269,11 @@ void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
     }
 }
 
-
 void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia) // Once the media is loaded, i want it to start playing.
     {
         qDebug() << "Media has loaded";
-        /*
-        qDebug() << "status: " << mediaPlayer->mediaStatus();
-        qDebug() << "audio availability: " << mediaPlayer->isAudioAvailable(); // this returns false for songs that don't play. figure out why the audio for these songs is unavailable.
-        qDebug() << "duration: " << mediaPlayer->duration();
-        qDebug() << "audio role: " << mediaPlayer->audioRole();
-        qDebug() << "buffer status: " << mediaPlayer->bufferStatus();
-        qDebug() << "error: " << mediaPlayer->error();
-        qDebug() << "volume: " << mediaPlayer->volume();
-        qDebug() << "playback rate: " << mediaPlayer->playbackRate();
-        qDebug() << "availability: " << mediaPlayer->availability();
-        */
-
         //mediaPlayer->play();
     }
     else if (status == QMediaPlayer::InvalidMedia)
@@ -332,14 +291,16 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     else if (status == QMediaPlayer::BufferedMedia)
     {
         qDebug() << "Buffered Media...";
-        qDebug() << "change highlighted song";
-        //ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
-        //ui->playlistTreeView->selectRow()
-
     }
     else if (status == QMediaPlayer::NoMedia)
     {
         //ui->currentTrackLabel->clear();
+    }
+    else if (status == QMediaPlayer::EndOfMedia)
+    {
+        qDebug() << status;
+        qDebug() << "Maybe I should insert the songs into the playlist here";
+        ui->currentTrackLabel->clear();
     }
     else
     {
@@ -347,22 +308,30 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     }
 }
 
-
-void Player::onStateChanged(QMediaPlayer::State state)
+void Player::updateCurrTrackLabel()
 {
-
-    qDebug() << "state: " << mediaPlayer->state();
-    if (state == QMediaPlayer::State::PlayingState)
+    int currPlaylistIndex = playlist->currentIndex();
+    if (currPlaylistIndex != -1)
     {
-        //ui->currentTrackLabel->setText("Now Playing: " + mediaPlayer->metaData(QMediaMetaData::Title).toString());
-        // The above might not always work because a file might not have the meta data for Title available, so an empty string might be getting printed.
-        // Instead, just get the artist and title by getting the current index in the playlist and then getting the data from this index in the playlist model.
+        QString currTrack = libraryViewModel->data(libraryViewModel->index(currPlaylistIndex, 1)).toString();
+        QString currArtist = libraryViewModel->data(libraryViewModel->index(currPlaylistIndex, 2)).toString();
+        QString currentlyPlayingText = "Now Playing: ";
+        if (!currArtist.isEmpty())
+        {
+            currentlyPlayingText += currArtist + " - ";
+        }
+        currentlyPlayingText += currTrack;
+        ui->currentTrackLabel->setText(currentlyPlayingText);
     }
-    // else if it is in the paused state... do something
-    // else it is in stopped state.... do something
-    else if (state == QMediaPlayer::State::StoppedState)
+    else
     {
-        //ui->currentTrackLabel->clear();
+        ui->currentTrackLabel->clear();
     }
+}
 
+void Player::updatePlaylistTreeViewSelection()
+{
+    int currPlaylistIndex = playlist->currentIndex();
+    QModelIndex index = libraryViewModel->index(currPlaylistIndex, 0);
+    ui->playlistTreeView->setCurrentIndex(index);
 }

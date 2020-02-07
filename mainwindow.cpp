@@ -21,7 +21,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
 void MainWindow::onAddToLibraryActionTriggered()
 {
     QUrl filename = QFileDialog::getOpenFileUrl(this, "Add file to library");
@@ -47,7 +46,6 @@ void MainWindow::saveWindowState()
     settings.setValue("MainWindow/isMaximized", isMaximized());
     settings.setValue("MainWindow/size", size());
 }
-
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {

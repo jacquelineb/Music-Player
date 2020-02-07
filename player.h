@@ -36,23 +36,21 @@ private:
     void initializeLibraryPlaylist();
     void initializeLibraryTreeView();
     void initializeMediaPlayer();
+    void insertToTrackTable(QString const& title, int artistId, QString const& album,
+                            int trackNum, int year, QString const& genre, int duration,
+                            QString const& location);
+
     void savePlayerSettings();
     void setUpConnections();
     void restorePlayerSettings();
 
-    void insertToTrackTable(QString const& title, int artistId, QString const& album,
-                        int trackNum, int year, QString const& genre, int duration,
-                        QString const& location);
-
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
     void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
-    void onStateChanged(QMediaPlayer::State state);
     void playDoubleClickedTrack(const QModelIndex &index);
     void playOrPauseMedia();
-
-
-    void playlistIndexChanged(int position);
+    void updateCurrTrackLabel();
+    void updatePlaylistTreeViewSelection();
 };
 
 #endif // PLAYER_H

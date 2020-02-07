@@ -5,7 +5,6 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
-
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
@@ -45,7 +44,6 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     const QVariant rightData = sourceModel()->data(right);
     return leftData < rightData;
 }
-
 
 bool LibraryPlaylistModel::artistLessThan(const QModelIndex &left, const QModelIndex &right) const
 {

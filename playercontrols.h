@@ -24,28 +24,27 @@ private:
     Ui::PlayerControls *ui;
     int volume;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
+
+    void closeEvent(QCloseEvent *event);
     void restoreVolSliderState();
     void saveVolSliderState();
-    void closeEvent(QCloseEvent *event);
+    void setConnections();
 
 signals:
-    void playOrPauseClicked();
-    void pauseClicked();
-    void prevClicked();
     void nextClicked();
-    void volumeChanged(int value);
+    void pauseClicked();
+    void playOrPauseClicked();
+    void prevClicked();
     void progressSliderMoved(int value);
+    void volumeChanged(int value);
 
 public slots:
+    void setPlayButtonLabel(QMediaPlayer::State mediaState);
     void setupProgressSlider(int mediaDurationInMillisec);
     void updateProgressSlider(int position);
-    void setPlayButtonLabel(QMediaPlayer::State mediaState);
 
 private slots:
-    void clickPlay();
-    void clickPrev();
-    void clickNext();
-    void setVolume(int volSliderValue);
+    void setVolume(int volumeSliderValue);
 };
 
 #endif // PLAYERCONTROLS_H

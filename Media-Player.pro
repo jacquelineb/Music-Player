@@ -29,21 +29,18 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     playercontrols.cpp \
-    player.cpp \
-    playlisttableview.cpp
+    player.cpp
 
 HEADERS += \
     libraryplaylistmodel.h \
         mainwindow.h \
     playercontrols.h \
-    player.h \
-    playlisttableview.h
+    player.h
 
 FORMS += \
         mainwindow.ui \
     playercontrols.ui \
-    player.ui \
-    playlisttableview.ui
+    player.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

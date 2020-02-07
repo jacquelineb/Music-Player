@@ -7,36 +7,12 @@ PlayerControls::PlayerControls(QWidget *parent) :
 {
     ui->setupUi(this);
     restoreVolSliderState();
-    connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::clickPlay);
-    connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::clickPrev);
-    connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::clickNext);
-    connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
-    connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
+    setConnections();
 }
 
 PlayerControls::~PlayerControls()
 {
     delete ui;
-}
-
-
-void PlayerControls::closeEvent(QCloseEvent *event)
-{
-    saveVolSliderState();
-    event->accept();
-}
-
-void PlayerControls::updateProgressSlider(int position)
-{
-    ui->progressSlider->setValue(position);
-}
-
-
-void PlayerControls::setupProgressSlider(int mediaDurationInMillisec)
-{
-    //qint64 mediaDurationInSec = mediaDurationInMillisec / 1000;
-    //ui->progressSlider->setMaximum(mediaDurationInSec);
-    ui->progressSlider->setMaximum(mediaDurationInMillisec);
 }
 
 void PlayerControls::restoreVolSliderState()
@@ -48,15 +24,43 @@ void PlayerControls::restoreVolSliderState()
     setVolume(ui->volumeSlider->value());
 }
 
-
-void PlayerControls::setVolume(int volSliderValue)
+void PlayerControls::setConnections()
 {
-    qDebug() << "Vol value: " << volSliderValue;
-    qreal linearVolume = QAudio::convertVolume(volSliderValue / qreal(100.0),
+    connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::playOrPauseClicked);
+    connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::prevClicked);
+    connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::nextClicked);
+    connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
+    connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
+}
+
+void PlayerControls::setVolume(int volumeSliderValue)
+{
+    qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
                                                QAudio::LogarithmicVolumeScale,
                                                QAudio::LinearVolumeScale);
     volume = qRound(linearVolume * 100);
     emit volumeChanged(volume);
+}
+
+void PlayerControls::closeEvent(QCloseEvent *event)
+{
+    saveVolSliderState();
+    event->accept();
+}
+
+void PlayerControls::updateProgressSlider(int position)
+{
+    if (!ui->progressSlider->isSliderDown())
+    {
+        ui->progressSlider->setValue(position);
+    }
+}
+
+void PlayerControls::setupProgressSlider(int mediaDurationInMillisec)
+{
+    //qint64 mediaDurationInSec = mediaDurationInMillisec / 1000;
+    //ui->progressSlider->setMaximum(mediaDurationInSec);
+    ui->progressSlider->setMaximum(mediaDurationInMillisec);
 }
 
 
@@ -64,7 +68,6 @@ void PlayerControls::saveVolSliderState()
 {
     settings.setValue("PlayerControls/volumeSlider", ui->volumeSlider->value());
 }
-
 
 void PlayerControls::setPlayButtonLabel(QMediaPlayer::State mediaState)
 {
@@ -76,22 +79,4 @@ void PlayerControls::setPlayButtonLabel(QMediaPlayer::State mediaState)
     {
         ui->playButton->setText("Play");
     }
-}
-
-void PlayerControls::clickPlay()
-{
-    emit playOrPauseClicked();
-}
-
-
-
-void PlayerControls::clickPrev()
-{
-    emit prevClicked();
-}
-
-
-void PlayerControls::clickNext()
-{
-    emit nextClicked();
 }
