@@ -37,8 +37,6 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
                 return leftData < rightData;
             }
         }
-
-        //albumLessThan(left, right);
     }
     const QVariant leftData = sourceModel()->data(left);
     const QVariant rightData = sourceModel()->data(right);

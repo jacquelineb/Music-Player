@@ -68,6 +68,7 @@ void Player::initializeLibraryTreeView()
     ui->playlistTreeView->setColumnHidden(5, true);
     ui->playlistTreeView->setColumnHidden(8, true);
     */
+
 }
 
 void Player::initializeLibraryPlaylist()
@@ -100,9 +101,12 @@ void Player::setUpConnections()
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
+
     connect(playlist, &QMediaPlaylist::currentMediaChanged, this, &Player::updateCurrTrackLabel);
     connect(playlist, &QMediaPlaylist::currentMediaChanged, this, &Player::updatePlaylistTreeViewSelection);
+
     connect(ui->playlistTreeView, &QTreeView::doubleClicked, this, &Player::playDoubleClickedTrack);
+
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &Player::playOrPauseMedia);
@@ -299,7 +303,6 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     else if (status == QMediaPlayer::EndOfMedia)
     {
         qDebug() << status;
-        qDebug() << "Maybe I should insert the songs into the playlist here";
         ui->currentTrackLabel->clear();
     }
     else
@@ -311,10 +314,12 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 void Player::updateCurrTrackLabel()
 {
     int currPlaylistIndex = playlist->currentIndex();
+    qDebug() << currPlaylistIndex;
     if (currPlaylistIndex != -1)
     {
         QString currTrack = libraryViewModel->data(libraryViewModel->index(currPlaylistIndex, 1)).toString();
         QString currArtist = libraryViewModel->data(libraryViewModel->index(currPlaylistIndex, 2)).toString();
+        qDebug() << currTrack << " " << currArtist;
         QString currentlyPlayingText = "Now Playing: ";
         if (!currArtist.isEmpty())
         {

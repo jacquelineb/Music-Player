@@ -26,8 +26,8 @@ private:
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
 
     void closeEvent(QCloseEvent *event);
-    void restoreVolSliderState();
-    void saveVolSliderState();
+    void restoreVolumeSliderState();
+    void saveVolumeSliderState();
     void setConnections();
 
 signals:
