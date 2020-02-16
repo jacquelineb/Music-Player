@@ -11,6 +11,7 @@ class LibraryPlaylistModel : public QSortFilterProxyModel
 public:
     LibraryPlaylistModel(QObject *parent = nullptr);
 protected:
+    Qt::ItemFlags flags(const QModelIndex& index) const override;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:

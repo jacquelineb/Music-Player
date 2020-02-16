@@ -5,6 +5,19 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
+Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex& index) const
+{
+    Qt::ItemFlags flags = QAbstractProxyModel::flags(index);
+    if (index.column() == static_cast<int>(ColumnHeader::trackId)
+        || index.column() == static_cast<int>(ColumnHeader::duration)
+        || index.column() == static_cast<int>(ColumnHeader::location))
+    {
+        // Make trackId, duration, and location columns read only
+        flags &= ~Qt::ItemIsEditable;
+    }
+    return flags;
+}
+
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
