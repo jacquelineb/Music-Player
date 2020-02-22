@@ -89,7 +89,7 @@
     </widget>
    </item>
    <item row="0" column="0" colspan="3">
-    <widget class="QTreeView" name="playlistTreeView">
+    <widget class="QTreeView" name="playlistView">
      <property name="palette">
       <palette>
        <active>
