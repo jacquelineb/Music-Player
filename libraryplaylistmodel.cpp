@@ -8,9 +8,9 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex& index) const
 {
     Qt::ItemFlags flags = QAbstractProxyModel::flags(index);
-    if (index.column() == static_cast<int>(ColumnHeader::trackId)
-        || index.column() == static_cast<int>(ColumnHeader::duration)
-        || index.column() == static_cast<int>(ColumnHeader::location))
+    if (index.column() == static_cast<int>(Column::trackId)
+        || index.column() == static_cast<int>(Column::duration)
+        || index.column() == static_cast<int>(Column::location))
     {
         // Make trackId, duration, and location columns read only
         flags &= ~Qt::ItemIsEditable;
@@ -21,52 +21,38 @@ Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex& index) const
 bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
-    if (sortingColumn == static_cast<int>(ColumnHeader::artist))
+    if (sortingColumn == static_cast<int>(Column::artist))
     {
-        return artistLessThan(left, right);
+        const QList<Column> sortingColumnsForArtist = {Column::artist, Column::album, Column::trackNum};
+        return multiColumnLessThan(left, right, sortingColumnsForArtist);
     }
-    else if (sortingColumn == static_cast<int>(ColumnHeader::album))
+    else if (sortingColumn == static_cast<int>(Column::album))
     {
-    /* YOU CAN PROBABLY IMPLEMENT A FUNCTION SIMILAR TO artistLessThan THAT WILL WORK FOR BOTH artistLessThan and
-    * albumLessThan, since they're essentially the same, just with different priority.
-    * just need to pass in the priority list (i.e artistSortPriorty or albumSortPriority)
-    * signature would be something like priorityBasedLessThan(QModelIndex&, QModelIndex&, priorityList);
-    */
-        // sort by album, using multiple columns
-        const QList<ColumnHeader> albumSortPriority = {ColumnHeader::album, ColumnHeader::artist, ColumnHeader::trackNum};
-        const int leftRow = left.row();
-        const int rightRow = right.row();
-        for (const ColumnHeader &columnHeader : albumSortPriority)
-        {
-            const int columnToCompare = static_cast<int>(columnHeader);
-            const QModelIndex leftIndex = sourceModel()->index(leftRow, columnToCompare, QModelIndex());
-            const QModelIndex rightIndex = sourceModel()->index(rightRow, columnToCompare, QModelIndex());
-
-            const QVariant leftData = sourceModel()->data(leftIndex);
-            const QVariant rightData = sourceModel()->data(rightIndex);
-
-            if (leftData != rightData)
-            {
-                return leftData < rightData;
-            }
-        }
+        const QList<Column> sortingColumnsForAlbum = {Column::album, Column::artist, Column::trackNum};
+        return multiColumnLessThan(left, right, sortingColumnsForAlbum);
     }
     const QVariant leftData = sourceModel()->data(left);
     const QVariant rightData = sourceModel()->data(right);
     return leftData < rightData;
 }
 
-bool LibraryPlaylistModel::artistLessThan(const QModelIndex &left, const QModelIndex &right) const
+bool LibraryPlaylistModel::multiColumnLessThan(const QModelIndex &left,
+                                               const QModelIndex &right,
+                                               QList<Column> columns) const
 {
-    //List of priority when sorting by artist. I.e., if sorting by artist, first sort by the artist column.
-    // If two artists are the same, then use the album column to determine an order.
-    const QList<ColumnHeader> artistSortPriority = {ColumnHeader::artist, ColumnHeader::album, ColumnHeader::trackNum};
+/* Called by lessThan(). Uses the columns listed in @columns to determine if the value of the item referred to by the
+ * given index @left is less than the value of the item referred to by the given index @right.
+ * E.g., when sorting by Album, if left Album and right Album are the same, I then want to compare Artists to determine
+ * if @left is less than @right. If the two Artists are the same, compare by the Track Numbers. So, when sorting
+ * by Album, I pass {Column::album, Column::artist, Column::trackNum} as @columns. This keeps the songs in an album of a
+ * specific artist grouped together and in its original tracklisting order (determined by trackNum).
+ * The order of the items in @columns matters.
+*/
     const int leftRow = left.row();
     const int rightRow = right.row();
-    for (const ColumnHeader &columnHeader : artistSortPriority)
+    for (const Column &column : columns)
     {
-        //qDebug() << "sort column is " << static_cast<int>(columnHeader);
-        const int columnToCompare = static_cast<int>(columnHeader);
+        const int columnToCompare = static_cast<int>(column);
         const QModelIndex leftIndex = sourceModel()->index(leftRow, columnToCompare, QModelIndex());
         const QModelIndex rightIndex = sourceModel()->index(rightRow, columnToCompare, QModelIndex());
         const QVariant leftData = sourceModel()->data(leftIndex);

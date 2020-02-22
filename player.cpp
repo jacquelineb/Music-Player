@@ -85,11 +85,11 @@ void Player::setUpConnections()
     connect(ui->playlistView, &QTreeView::doubleClicked, this, &Player::setMediaForPlayback);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &Player::onStatusChanged);
+    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &Player::updateCurrTrackLabel);
+    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &Player::updatePlaylistTreeViewSelection); // Check difference between QMediaPlayer's mediChanged and currentMediaChanged signals
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
-    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &Player::updateCurrTrackLabel);
-    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &Player::updatePlaylistTreeViewSelection); // Check difference between QMediaPlayer's mediChanged and currentMediaChanged signals
 
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
@@ -213,7 +213,6 @@ void Player::playOrPauseMedia()
         mediaPlayer->play();
     }
 }
-
 
 void Player::savePlayerSettings()
 {

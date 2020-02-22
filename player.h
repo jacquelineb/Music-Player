@@ -27,7 +27,7 @@ private:
     LibraryPlaylistModel *libraryProxyModel = nullptr;
     QMediaPlayer *mediaPlayer = nullptr;
     QMediaPlayer *mediaToBeAdded = nullptr;
-    qint64 position_ = 0;
+    //qint64 position_ = 0;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     QModelIndex srcIndexOfCurrMedia;
 

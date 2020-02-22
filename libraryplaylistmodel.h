@@ -2,7 +2,7 @@
 #define LIBRARYPLAYLISTMODEL_H
 
 #include <QSortFilterProxyModel>
-#include <QSqlRelationalTableModel>
+//#include <QSqlRelationalTableModel>
 
 class LibraryPlaylistModel : public QSortFilterProxyModel
 {
@@ -15,8 +15,7 @@ protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
-    bool artistLessThan(const QModelIndex &left, const QModelIndex &right) const;
-    enum class ColumnHeader : int
+    enum class Column : int
     {
         trackId = 0,
         title = 1,
@@ -28,6 +27,7 @@ private:
         duration = 7,
         location = 8
     };
+    bool multiColumnLessThan(const QModelIndex &left, const QModelIndex &right, QList<Column> columns) const;
 };
 
 #endif // LIBRARYPLAYLISTMODEL_H
