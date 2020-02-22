@@ -10,6 +10,16 @@ class LibraryPlaylistModel : public QSortFilterProxyModel
 
 public:
     LibraryPlaylistModel(QObject *parent = nullptr);
+    int trackIdColumn() const { return static_cast<int>(Column::trackId); }
+    int titleColumn() const { return static_cast<int>(Column::title); }
+    int artistColumn() const { return static_cast<int>(Column::artist); }
+    int albumColumn() const { return static_cast<int>(Column::album); }
+    int trackNumColumn() const { return static_cast<int>(Column::trackNum); }
+    int yearColumn() const { return static_cast<int>(Column::year); }
+    int genreColumn() const { return static_cast<int>(Column::genre); }
+    int durationColumn() const { return static_cast<int>(Column::duration); }
+    int locationColumn() const { return static_cast<int>(Column::location); }
+
 protected:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;

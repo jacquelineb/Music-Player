@@ -45,27 +45,27 @@ void Player::initializeLibraryModels()
 
     libraryProxyModel = new LibraryPlaylistModel(this);
     libraryProxyModel->setSourceModel(librarySourceModel);
-    libraryProxyModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
-    libraryProxyModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
-    libraryProxyModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
-    libraryProxyModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
-    libraryProxyModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
-    libraryProxyModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
-    libraryProxyModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
-    libraryProxyModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
-    libraryProxyModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->trackIdColumn(), Qt::Horizontal, tr("Track ID"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->titleColumn(), Qt::Horizontal, tr("Title"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->artistColumn(), Qt::Horizontal, tr("Artist"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->albumColumn(), Qt::Horizontal, tr("Album"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->trackNumColumn(), Qt::Horizontal, tr("Track Number"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->yearColumn(), Qt::Horizontal, tr("Year"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->genreColumn(), Qt::Horizontal, tr("Genre"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->durationColumn(), Qt::Horizontal, tr("Duration"));
+    libraryProxyModel->setHeaderData(libraryProxyModel->locationColumn(), Qt::Horizontal, tr("Location"));
     libraryProxyModel->setDynamicSortFilter(true);
 }
 
 void Player::initializeLibraryTreeView()
 {
     ui->playlistView->setModel(libraryProxyModel);
-    ui->playlistView->sortByColumn(2, Qt::SortOrder::AscendingOrder);
+    ui->playlistView->sortByColumn(libraryProxyModel->artistColumn(), Qt::SortOrder::AscendingOrder);
 
-    //ui->playlistView->setColumnHidden(0, true);
-    //ui->playlistView->setColumnHidden(4, true);
-    //ui->playlistView->setColumnHidden(5, true);
-    //ui->playlistView->setColumnHidden(8, true);
+    //ui->playlistView->setColumnHidden(libraryProxyModel->trackIdColumn(), true);
+    //ui->playlistView->setColumnHidden(libraryProxyModel->trackNumColumn(), true);
+    //ui->playlistView->setColumnHidden(libraryProxyModel->yearColumn(), true);
+    //ui->playlistView->setColumnHidden(libraryProxyModel->locationColumn(), true);
 }
 
 void Player::initializeMediaPlayer()
@@ -102,8 +102,11 @@ void Player::setMediaForPlayback(const QModelIndex &selectedIndex)
 {
     if (selectedIndex.isValid())
     {
+        // Keep track of the index of the current media.
         srcIndexOfCurrMedia = libraryProxyModel->mapToSource(selectedIndex);
-        QUrl trackLocation = libraryProxyModel->data(libraryProxyModel->index(selectedIndex.row(), 8, QModelIndex())).toUrl();
+
+        QModelIndex trackLocationIndex = selectedIndex.siblingAtColumn(libraryProxyModel->locationColumn());
+        QUrl trackLocation = libraryProxyModel->data(trackLocationIndex).toUrl();
         mediaPlayer->setMedia(trackLocation);
     }
     else
@@ -161,10 +164,11 @@ void Player::updateCurrTrackLabel()
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
     if (proxyIndexOfCurrMedia.isValid())
     {
-        int currRow = proxyIndexOfCurrMedia.row();
-        QString currTrack = libraryProxyModel->data(libraryProxyModel->index(currRow, 1)).toString();
-        QString currArtist = libraryProxyModel->data(libraryProxyModel->index(currRow, 2)).toString();
-        qDebug() << currTrack << " " << currArtist;
+        QModelIndex trackTitleIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->titleColumn());
+        QString currTrack = libraryProxyModel->data(trackTitleIndex).toString();
+        QModelIndex trackArtistIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->artistColumn());
+        QString currArtist = libraryProxyModel->data(trackArtistIndex).toString();
+
         QString currentlyPlayingText = "Now Playing: ";
         if (!currArtist.isEmpty())
         {
@@ -197,8 +201,8 @@ void Player::playOrPauseMedia()
         if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
         {
             /* If pressing play button from a stopped state,
-             * start playback from the first highlighted song if there is one.
-             * Otherwise just start playback from the beginning of playlist.
+            * start playback from the first highlighted song if there is one.
+            * Otherwise just start playback from the beginning of playlist.
             */
             QModelIndex selectedIndex = ui->playlistView->currentIndex();
             if (selectedIndex.isValid())
