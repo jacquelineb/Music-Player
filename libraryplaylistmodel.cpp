@@ -23,7 +23,7 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     const int sortingColumn = left.column();
     if (sortingColumn == static_cast<int>(Column::artist))
     {
-        const QList<Column> sortingColumnsForArtist = {Column::artist, Column::album, Column::trackNum};
+        const QList<Column> sortingColumnsForArtist = {Column::artist, Column::album, Column::trackNum, Column::title};
         return multiColumnLessThan(left, right, sortingColumnsForArtist);
     }
     else if (sortingColumn == static_cast<int>(Column::album))

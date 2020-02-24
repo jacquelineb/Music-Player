@@ -259,8 +259,13 @@ int getIdFromArtistTable(QString const& artistName)
     return -1;
 }
 
-void Player::insertToTrackTable(QString const& title, int artistId, QString const& album,
-                                int trackNum, int year, QString const& genre, int duration,
+void Player::insertToTrackTable(QString const& title,
+                                int artistId,
+                                QString const& album,
+                                int trackNum,
+                                int year,
+                                QString const& genre,
+                                int duration,
                                 QString const& location)
 {
     QSqlQuery query;
@@ -279,15 +284,8 @@ void Player::insertToTrackTable(QString const& title, int artistId, QString cons
     {
         // Move this code out of here. Make insertToTrackTable a bool function, and then call the below from onAddMediaStatusChanged
         // if this function returns true.
-
         qDebug() << "Line 211: Succesful exec\n";
         librarySourceModel->select();
-
-        /* There is currently a bug where if a song in the playlist is already playing and the user decides to add
-         * a new song to the library, if the new song was inserted into the playlist at some index before the current song,
-         * playback will start at the beginning of the playlist. If the new song was inserted into the playlist somewhere
-         * after the currently playing song, playback will continue as normal.
-        */
     }
     else
     {

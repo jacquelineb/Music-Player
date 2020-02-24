@@ -22,6 +22,11 @@ bool connectToMediaDb()
     // Create tables. Make sure to check if the tables already exists.A
     // MOVE SOME STUFF INTO FUNCTIONS
     // Add delete on cascade?
+    QString createArtistTable =
+            "CREATE TABLE IF NOT EXISTS Artist ("
+                "id     INTEGER PRIMARY KEY,"
+                "name   VARCHAR(255) UNIQUE NOT NULL)";
+
     QString createTrackTable =
             "CREATE TABLE IF NOT EXISTS Track ("
                    "id          INTEGER PRIMARY KEY,"
@@ -35,28 +40,10 @@ bool connectToMediaDb()
                    "location    TEXT UNIQUE NOT NULL,"
                    "FOREIGN KEY(artist_id) REFERENCES Artist(id))";
 
-    QString createArtistTable =
-            "CREATE TABLE IF NOT EXISTS Artist ("
-                "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE NOT NULL)";
-
-    QString createPlaylistTable =
-            "CREATE TABLE IF NOT EXISTS Playlist ("
-                "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE NOT NULL)";
-
-    QString createPlaylistSongsTable =
-            "CREATE TABLE IF NOT EXISTS PlaylistTracks ("
-                "playlist_id    INTEGER,"
-                "track_id       INTEGER,"
-                "FOREIGN KEY(playlist_id) REFERENCES Playlist(id),"
-                "FOREIGN KEY(track_id) REFERENCES Track(id))";
 
     QSqlQuery query;
     query.exec(createTrackTable);
     query.exec(createArtistTable);
-    query.exec(createPlaylistTable);
-    query.exec(createPlaylistSongsTable);
 
     return true;
 }

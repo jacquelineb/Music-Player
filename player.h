@@ -35,8 +35,13 @@ private:
     void initializeLibraryModels();
     void initializeLibraryTreeView();
     void initializeMediaPlayer();
-    void insertToTrackTable(QString const& title, int artistId, QString const& album,
-                            int trackNum, int year, QString const& genre, int duration,
+    void insertToTrackTable(QString const& title,
+                            int artistId,
+                            QString const& album,
+                            int trackNum,
+                            int year,
+                            QString const& genre,
+                            int duration,
                             QString const& location);
 
     void savePlayerSettings();
