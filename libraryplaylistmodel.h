@@ -21,7 +21,7 @@ public:
     int locationColumn() const { return static_cast<int>(Column::location); }
 
 protected:
-    Qt::ItemFlags flags(const QModelIndex& index) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:

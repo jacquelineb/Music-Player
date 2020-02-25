@@ -27,7 +27,6 @@ private:
     LibraryPlaylistModel *libraryProxyModel = nullptr;
     QMediaPlayer *mediaPlayer = nullptr;
     QMediaPlayer *mediaToBeAdded = nullptr;
-    //qint64 position_ = 0;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
     QModelIndex srcIndexOfCurrMedia;
 
@@ -35,14 +34,14 @@ private:
     void initializeLibraryModels();
     void initializeLibraryTreeView();
     void initializeMediaPlayer();
-    void insertToTrackTable(QString const& title,
+    void insertToTrackTable(const QString &title,
                             int artistId,
-                            QString const& album,
+                            const QString &album,
                             int trackNum,
                             int year,
-                            QString const& genre,
+                            const QString &genre,
                             int duration,
-                            QString const& location);
+                            const QString &location);
 
     void savePlayerSettings();
     void setUpConnections();

@@ -2,11 +2,9 @@
 #include "ui_player.h"
 
 #include <QDebug>
-#include <QAbstractButton>
 #include <QCloseEvent>
 #include <QFileInfo>
 #include <QMediaMetaData>
-#include <QTime>
 #include <QSqlQuery>
 #include <QSqlError> // maybe delete this later
 #include <QMediaPlaylist>
@@ -40,7 +38,8 @@ void Player::initializeLibraryModels()
 {
     librarySourceModel = new QSqlRelationalTableModel(this);
     librarySourceModel->setTable("Track");
-    librarySourceModel->setRelation(2, QSqlRelation("Artist", "id", "name"));
+    const int artistIdColumn = 2;
+    librarySourceModel->setRelation(artistIdColumn, QSqlRelation("Artist", "id", "name"));
     librarySourceModel->select();
 
     libraryProxyModel = new LibraryPlaylistModel(this);
@@ -62,10 +61,10 @@ void Player::initializeLibraryTreeView()
     ui->playlistView->setModel(libraryProxyModel);
     ui->playlistView->sortByColumn(libraryProxyModel->artistColumn(), Qt::SortOrder::AscendingOrder);
 
-    //ui->playlistView->setColumnHidden(libraryProxyModel->trackIdColumn(), true);
-    //ui->playlistView->setColumnHidden(libraryProxyModel->trackNumColumn(), true);
-    //ui->playlistView->setColumnHidden(libraryProxyModel->yearColumn(), true);
-    //ui->playlistView->setColumnHidden(libraryProxyModel->locationColumn(), true);
+    ui->playlistView->setColumnHidden(libraryProxyModel->trackIdColumn(), true);
+    ui->playlistView->setColumnHidden(libraryProxyModel->trackNumColumn(), true);
+    ui->playlistView->setColumnHidden(libraryProxyModel->yearColumn(), true);
+    ui->playlistView->setColumnHidden(libraryProxyModel->locationColumn(), true);
 }
 
 void Player::initializeMediaPlayer()
@@ -98,14 +97,14 @@ void Player::setUpConnections()
     connect(ui->controls, &PlayerControls::prevClicked, this, &Player::setPreviousMediaForPlayback);
 }
 
-void Player::setMediaForPlayback(const QModelIndex &selectedIndex)
+void Player::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
 {
-    if (selectedIndex.isValid())
+    if (selectedProxyIndex.isValid())
     {
         // Keep track of the index of the current media.
-        srcIndexOfCurrMedia = libraryProxyModel->mapToSource(selectedIndex);
+        srcIndexOfCurrMedia = libraryProxyModel->mapToSource(selectedProxyIndex);
 
-        QModelIndex trackLocationIndex = selectedIndex.siblingAtColumn(libraryProxyModel->locationColumn());
+        QModelIndex trackLocationIndex = selectedProxyIndex.siblingAtColumn(libraryProxyModel->locationColumn());
         QUrl trackLocation = libraryProxyModel->data(trackLocationIndex).toUrl();
         mediaPlayer->setMedia(trackLocation);
     }
@@ -120,6 +119,7 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia)
     {
+        qDebug() << "Playing media";
         playLoadedMedia();
     }
     else if (status == QMediaPlayer::EndOfMedia)
@@ -128,15 +128,14 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     }
     else if (status == QMediaPlayer::InvalidMedia)
     {
-        qDebug() << "Line 282: " << status;
-        qDebug() << "Error loading file";
-        // error checking?
-        // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error())
-        // As example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
+        qDebug() << "Line 132: " << status;
+        // Notify user that the media was invalid and could not be played. Give them option to remove song.
+        // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error()) ?
+        // An example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
     }
     else
     {
-        qDebug() << "Line 294: " << status;
+        qDebug() << "Line 140: " << status;
     }
 }
 
@@ -148,15 +147,25 @@ void Player::playLoadedMedia()
 void Player::setNextMediaForPlayback()
 {
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    QModelIndex next = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()+1);
-    setMediaForPlayback(next);
+    QModelIndex proxyIndexOfNextMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()+1);
+    setMediaForPlayback(proxyIndexOfNextMedia);
 }
 
 void Player::setPreviousMediaForPlayback()
 {
+/* Plays previous media only if playback position in current media is less than 2000ms in.
+ * Otherwise, restarts current media from beginning.
+*/
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    QModelIndex previous = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()-1);
-    setMediaForPlayback(previous);
+    if (mediaPlayer->position() < 2000)
+    {
+        QModelIndex proxyIndexOfPreviousMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()-1);
+        setMediaForPlayback(proxyIndexOfPreviousMedia);
+    }
+    else
+    {
+        setMediaForPlayback(proxyIndexOfCurrMedia);
+    }
 }
 
 void Player::updateCurrTrackLabel()
@@ -201,8 +210,8 @@ void Player::playOrPauseMedia()
         if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
         {
             /* If pressing play button from a stopped state,
-            * start playback from the first highlighted song if there is one.
-            * Otherwise just start playback from the beginning of playlist.
+             * start playback from the first highlighted song if there is one.
+             * Otherwise just start playback from the beginning of playlist.
             */
             QModelIndex selectedIndex = ui->playlistView->currentIndex();
             if (selectedIndex.isValid())
@@ -237,7 +246,7 @@ void Player::addToLibrary(QUrl filename)
     mediaToBeAdded->setMedia(filename);
 }
 
-void insertToArtistTable(QString const& artistName)
+void insertToArtistTable(const QString &artistName)
 {
     QSqlQuery query;
     query.prepare("INSERT INTO Artist (name) "
@@ -246,7 +255,7 @@ void insertToArtistTable(QString const& artistName)
     query.exec();
 }
 
-int getIdFromArtistTable(QString const& artistName)
+int getIdFromArtistTable(const QString &artistName)
 {
     QSqlQuery query;
     query.prepare("SELECT id FROM Artist "
@@ -259,14 +268,14 @@ int getIdFromArtistTable(QString const& artistName)
     return -1;
 }
 
-void Player::insertToTrackTable(QString const& title,
+void Player::insertToTrackTable(const QString &title,
                                 int artistId,
-                                QString const& album,
+                                const QString &album,
                                 int trackNum,
                                 int year,
-                                QString const& genre,
+                                const QString &genre,
                                 int duration,
-                                QString const& location)
+                                const QString &location)
 {
     QSqlQuery query;
     query.prepare("INSERT INTO Track (title, artist_id, album, track_num, year, genre, duration, location) "

@@ -5,7 +5,7 @@ LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyMo
 {
 }
 
-Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex& index) const
+Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = QAbstractProxyModel::flags(index);
     if (index.column() == static_cast<int>(Column::trackId)
