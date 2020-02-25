@@ -20,6 +20,7 @@ public:
     explicit Player(QWidget *parent = nullptr);
     ~Player();
     void addToLibrary(QUrl filename);
+    void updatePlaylistView();
 
 private:
     Ui::Player *ui;
@@ -34,22 +35,12 @@ private:
     void initializeLibraryModels();
     void initializeLibraryTreeView();
     void initializeMediaPlayer();
-    void insertToTrackTable(const QString &title,
-                            int artistId,
-                            const QString &album,
-                            int trackNum,
-                            int year,
-                            const QString &genre,
-                            int duration,
-                            const QString &location);
-
     void savePlayerSettings();
     void setUpConnections();
     void restorePlayerSettings();
 
 private slots:
     void onStatusChanged(QMediaPlayer::MediaStatus status);
-    void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void setMediaForPlayback(const QModelIndex &index);
     void playOrPauseMedia();
     void updateCurrTrackLabel();

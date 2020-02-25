@@ -2,15 +2,15 @@
 #include "ui_player.h"
 
 #include <QDebug>
-#include <QCloseEvent>
-#include <QFileInfo>
-#include <QMediaMetaData>
-#include <QSqlQuery>
-#include <QSqlError> // maybe delete this later
-#include <QMediaPlaylist>
-#include <QSqlRecord>
-#include <QSqlField>
-#include <QSqlIndex> //
+#include <QCloseEvent> // why does it still work if i comment this out
+//#include <QFileInfo>
+//#include <QMediaMetaData>
+//#include <QSqlQuery>
+//#include <QSqlError> // maybe delete this later
+//#include <QMediaPlaylist>
+//#include <QSqlRecord>
+//#include <QSqlField>
+//#include <QSqlIndex> //
 
 #include "libraryplaylistmodel.h" //
 
@@ -23,10 +23,6 @@ Player::Player(QWidget *parent) :
     initializeLibraryTreeView();
     initializeMediaPlayer();
     setUpConnections();
-
-    // Change this later. try taglib
-    mediaToBeAdded = new QMediaPlayer(this);
-    connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &Player::onAddMediaStatusChanged);
 }
 
 Player::~Player()
@@ -130,7 +126,6 @@ void Player::onStatusChanged(QMediaPlayer::MediaStatus status)
     {
         qDebug() << "Line 132: " << status;
         // Notify user that the media was invalid and could not be played. Give them option to remove song.
-        // send a signal to be recieved by MainWindow about any errors (use mediaPlayer->error()) ?
         // An example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
     }
     else
@@ -239,108 +234,9 @@ void Player::closeEvent(QCloseEvent *event)
     event->accept();
 }
 
-void Player::addToLibrary(QUrl filename)
+//
+void Player::updatePlaylistView()
 {
-    //https://stackoverflow.com/questions/23678748/qtcreator-qmediaplayer-meta-data-returns-blank-qstring
-    // above explains why I chose to use a separate QMediaPlayer (addMedia) for adding media to the library.
-    mediaToBeAdded->setMedia(filename);
-}
-
-void insertToArtistTable(const QString &artistName)
-{
-    QSqlQuery query;
-    query.prepare("INSERT INTO Artist (name) "
-                  "VALUES (:artist)");
-    query.bindValue(":artist", artistName);
-    query.exec();
-}
-
-int getIdFromArtistTable(const QString &artistName)
-{
-    QSqlQuery query;
-    query.prepare("SELECT id FROM Artist "
-                  "WHERE name = :artist");
-    query.bindValue(":artist", artistName); // exec() overwrites the placeholder with data, so rebinding :artist to artist is necessary.
-    if (query.exec() && query.first())
-    {
-        return query.value("id").toInt();
-    }
-    return -1;
-}
-
-void Player::insertToTrackTable(const QString &title,
-                                int artistId,
-                                const QString &album,
-                                int trackNum,
-                                int year,
-                                const QString &genre,
-                                int duration,
-                                const QString &location)
-{
-    QSqlQuery query;
-    query.prepare("INSERT INTO Track (title, artist_id, album, track_num, year, genre, duration, location) "
-                  "VALUES (:title, :artist_id, :album, :track_num, :year, :genre, :duration, :location)");
-    query.bindValue(":title", title);
-    query.bindValue(":artist_id", artistId);
-    query.bindValue(":album", album);
-    query.bindValue(":track_num", trackNum);
-    query.bindValue(":year", year);
-    query.bindValue(":genre", genre);
-    query.bindValue(":duration", duration);
-    query.bindValue(":location", location);
-
-    if (query.exec())
-    {
-        // Move this code out of here. Make insertToTrackTable a bool function, and then call the below from onAddMediaStatusChanged
-        // if this function returns true.
-        qDebug() << "Line 211: Succesful exec\n";
-        librarySourceModel->select();
-    }
-    else
-    {
-        qDebug() << "Line 211: Failed to exec\n";
-        qDebug() << query.lastError();
-    }
-}
-
-void Player::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-   if (status == QMediaPlayer::LoadedMedia)
-   {
-        QString location = mediaToBeAdded->currentMedia().canonicalUrl().toLocalFile();
-        QString title = mediaToBeAdded->metaData(QMediaMetaData::Title).toString();
-        if (title.isEmpty())
-        {
-            title = QFileInfo(location).completeBaseName();
-        }
-        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString() + "";
-        /* The + "" is necessary because if the metadata for the arguement passed to metaData() doesn't exist,
-         * then using .toString() on the result of metaData() will result in a NULL string. The + "" will convert
-         * this into an emptry string, which is what I need because I want an empty string to be a valid input (and
-         * for NULL to be invalid input) for the name field of the Artist table in the media database and NULL input to be invalid.
-        */
-
-        QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
-        int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
-        int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
-        QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
-        int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
-
-        qDebug() << "Location: " << location;
-        qDebug() << "Title: " << title;
-        qDebug() << "Artist: " << artist;
-        qDebug() << "Album: " << album;
-        qDebug() << "Track Number: " << trackNum;
-        qDebug() << "Year: " << year;
-        qDebug() << "Genre: " << genre;
-        qDebug() << "Duration: " << duration;
-
-        insertToArtistTable(artist);
-        int artistId = getIdFromArtistTable(artist);
-        if (artistId != -1)
-        {
-            insertToTrackTable(title, artistId, album, trackNum, year, genre, duration, location);
-        }
-    }
+    librarySourceModel->select();
 }
 

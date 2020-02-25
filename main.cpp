@@ -13,7 +13,7 @@ bool connectToMediaDb()
     db.setDatabaseName(QCoreApplication::applicationDirPath() + "/mediadb.sqlite");
     if (!db.open())
     {
-        QMessageBox::critical(nullptr, QObject::tr("Cannot open database"),
+        QMessageBox::critical(nullptr, QObject::tr("Cannot open media database"),
             QObject::tr("Unable to establish a connection to the media database.\n"
                         "Click Cancel to exit."), QMessageBox::Cancel);
         return false;
