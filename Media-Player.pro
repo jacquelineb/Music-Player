@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui multimedia sql
+QT += core gui multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,22 +25,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-    libraryplaylistmodel.cpp \
-        main.cpp \
-        mainwindow.cpp \
+    librarymodel.cpp \
+    main.cpp \
     playercontrols.cpp \
-    player.cpp
+    playerwindow.cpp
 
 HEADERS += \
-    libraryplaylistmodel.h \
-        mainwindow.h \
+    librarymodel.h \
     playercontrols.h \
-    player.h
+    playerwindow.h
 
 FORMS += \
-        mainwindow.ui \
     playercontrols.ui \
-    player.ui
+    player.ui \
+    playerwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -1,14 +1,14 @@
-#ifndef LIBRARYPLAYLISTMODEL_H
-#define LIBRARYPLAYLISTMODEL_H
+#ifndef LIBRARYMODEL_H
+#define LIBRARYMODEL_H
 
 #include <QSortFilterProxyModel>
 
-class LibraryPlaylistModel : public QSortFilterProxyModel
+class LibraryModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    LibraryPlaylistModel(QObject *parent = nullptr);
+    LibraryModel(QObject *parent = nullptr);
     int trackIdColumn() const { return static_cast<int>(Column::trackId); }
     int titleColumn() const { return static_cast<int>(Column::title); }
     int artistColumn() const { return static_cast<int>(Column::artist); }
@@ -39,4 +39,4 @@ private:
     bool multiColumnLessThan(const QModelIndex &left, const QModelIndex &right, QList<Column> columns) const;
 };
 
-#endif // LIBRARYPLAYLISTMODEL_H
+#endif // LIBRARYMODEL_H

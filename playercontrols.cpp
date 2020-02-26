@@ -34,10 +34,13 @@ void PlayerControls::setConnections()
 
 void PlayerControls::setVolume(int volumeSliderValue)
 {
-    qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
-                                               QAudio::LogarithmicVolumeScale,
-                                               QAudio::LinearVolumeScale);
-    volume = qRound(linearVolume * 100);
+    //qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
+    //                                           QAudio::LogarithmicVolumeScale,
+    //                                           QAudio::LinearVolumeScale);
+    //volume = qRound(linearVolume * 100);
+    //emit volumeChanged(volume);
+
+    volume = volumeSliderValue;
     emit volumeChanged(volume);
 }
 

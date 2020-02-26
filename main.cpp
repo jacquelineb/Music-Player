@@ -1,11 +1,34 @@
-#include "mainwindow.h"
+#include "playerwindow.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
 
-bool connectToMediaDb()
+bool initializeTrackTable()
+{
+/* Creates (if it does not already exist) the media database table "Track", which stores info
+ * about each track/song added to this Media Player program's library.
+ * Returns false only if the query could not be executed, not whether or not the table exists.
+*/
+    QSqlQuery query;
+    if (!query.exec("CREATE TABLE IF NOT EXISTS Track ("
+                    "id          INTEGER PRIMARY KEY,"
+                    "title       VARCHAR(255),"
+                    "artist      VARCHAR(255),"
+                    "album       VARCHAR(255),"
+                    "track_num   INTEGER,"
+                    "year        INTEGER,"
+                    "genre       VARCHAR(255),"
+                    "duration    INTEGER,"
+                    "location    TEXT UNIQUE NOT NULL)"))
+    {
+        return false;
+    }
+    return true;
+}
+
+bool initializeMediaDb()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     //db.setDatabaseName("Q:\\Documents\\testdb\\db.sqlite"); // just testing for now.
@@ -19,31 +42,10 @@ bool connectToMediaDb()
         return false;
     }
 
-    // Create tables. Make sure to check if the tables already exists.A
-    // MOVE SOME STUFF INTO FUNCTIONS
-    // Add delete on cascade?
-    QString createArtistTable =
-            "CREATE TABLE IF NOT EXISTS Artist ("
-                "id     INTEGER PRIMARY KEY,"
-                "name   VARCHAR(255) UNIQUE NOT NULL)";
-
-    QString createTrackTable =
-            "CREATE TABLE IF NOT EXISTS Track ("
-                   "id          INTEGER PRIMARY KEY,"
-                   "title       VARCHAR(255),"
-                   "artist_id   INTEGER,"
-                   "album       VARCHAR(255),"
-                   "track_num   INTEGER,"
-                   "year        INTEGER,"
-                   "genre       VARCHAR(255),"
-                   "duration    INTEGER,"
-                   "location    TEXT UNIQUE NOT NULL,"
-                   "FOREIGN KEY(artist_id) REFERENCES Artist(id))";
-
-
-    QSqlQuery query;
-    query.exec(createTrackTable);
-    query.exec(createArtistTable);
+    if (!initializeTrackTable())
+    {
+        return false;
+    }
 
     return true;
 }
@@ -52,12 +54,12 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    if (!connectToMediaDb())
+    if (!initializeMediaDb())
     {
         return EXIT_FAILURE;
     }
 
-    MainWindow w;
+    PlayerWindow w;
     w.show();
 
     return a.exec();

@@ -1,11 +1,11 @@
-#include "libraryplaylistmodel.h"
+#include "librarymodel.h"
 #include <QDebug> // Delete this later
 
-LibraryPlaylistModel::LibraryPlaylistModel(QObject *parent) : QSortFilterProxyModel(parent)
+LibraryModel::LibraryModel(QObject *parent) : QSortFilterProxyModel(parent)
 {
 }
 
-Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex &index) const
+Qt::ItemFlags LibraryModel::flags(const QModelIndex &index) const
 {
     Qt::ItemFlags flags = QAbstractProxyModel::flags(index);
     if (index.column() == static_cast<int>(Column::trackId)
@@ -18,7 +18,7 @@ Qt::ItemFlags LibraryPlaylistModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+bool LibraryModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
     if (sortingColumn == static_cast<int>(Column::artist))
@@ -36,7 +36,7 @@ bool LibraryPlaylistModel::lessThan(const QModelIndex &left, const QModelIndex &
     return leftData < rightData;
 }
 
-bool LibraryPlaylistModel::multiColumnLessThan(const QModelIndex &left,
+bool LibraryModel::multiColumnLessThan(const QModelIndex &left,
                                                const QModelIndex &right,
                                                QList<Column> columns) const
 {
