@@ -29,6 +29,7 @@ PlayerWindow::PlayerWindow(QWidget *parent) :
     // =======
 }
 
+
 PlayerWindow::~PlayerWindow()
 {
     delete ui;
@@ -52,31 +53,40 @@ void PlayerWindow::restorePlayerSettings()
 void PlayerWindow::initializeLibraryModels()
 {
     librarySourceModel = new QSqlTableModel(this);
-    librarySourceModel->setTable("Track");
-    librarySourceModel->setHeaderData(0, Qt::Horizontal, tr("Track ID"));
-    librarySourceModel->setHeaderData(1, Qt::Horizontal, tr("Title"));
-    librarySourceModel->setHeaderData(2, Qt::Horizontal, tr("Artist"));
-    librarySourceModel->setHeaderData(3, Qt::Horizontal, tr("Album"));
-    librarySourceModel->setHeaderData(4, Qt::Horizontal, tr("Track Number"));
-    librarySourceModel->setHeaderData(5, Qt::Horizontal, tr("Year"));
-    librarySourceModel->setHeaderData(6, Qt::Horizontal, tr("Genre"));
-    librarySourceModel->setHeaderData(7, Qt::Horizontal, tr("Duration"));
-    librarySourceModel->setHeaderData(8, Qt::Horizontal, tr("Location"));
+    librarySourceModel->setTable("Track"); // Track table from media database set up in main.cpp
+
+    const int TRACK_ID_COLUMN = 0;
+    const int TITLE_COLUMN = 1;
+    const int ARTIST_COLUMN = 2;
+    const int ALBUM_COLUMN = 3;
+    const int TRACK_NUM_COLUMN = 4;
+    const int YEAR_COLUMN = 5;
+    const int GENRE_COLUMN = 6;
+    const int DURATION_COLUMN = 7;
+    const int LOCATION_COLUMN = 8;
+
+    librarySourceModel->setHeaderData(TRACK_ID_COLUMN, Qt::Horizontal, tr("Track ID"));
+    librarySourceModel->setHeaderData(TITLE_COLUMN, Qt::Horizontal, tr("Title"));
+    librarySourceModel->setHeaderData(ARTIST_COLUMN, Qt::Horizontal, tr("Artist"));
+    librarySourceModel->setHeaderData(ALBUM_COLUMN, Qt::Horizontal, tr("Album"));
+    librarySourceModel->setHeaderData(TRACK_NUM_COLUMN, Qt::Horizontal, tr("Track Number"));
+    librarySourceModel->setHeaderData(YEAR_COLUMN, Qt::Horizontal, tr("Year"));
+    librarySourceModel->setHeaderData(GENRE_COLUMN, Qt::Horizontal, tr("Genre"));
+    librarySourceModel->setHeaderData(DURATION_COLUMN, Qt::Horizontal, tr("Duration"));
+    librarySourceModel->setHeaderData(LOCATION_COLUMN, Qt::Horizontal, tr("Location"));
     librarySourceModel->select();
 
     libraryProxyModel = new LibraryModel(this);
     libraryProxyModel->setSourceModel(librarySourceModel);
-    /*
-    libraryProxyModel->setHeaderData(libraryProxyModel->trackIdColumn(), Qt::Horizontal, tr("Track ID"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->titleColumn(), Qt::Horizontal, tr("Title"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->artistColumn(), Qt::Horizontal, tr("Artist"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->albumColumn(), Qt::Horizontal, tr("Album"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->trackNumColumn(), Qt::Horizontal, tr("Track Number"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->yearColumn(), Qt::Horizontal, tr("Year"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->genreColumn(), Qt::Horizontal, tr("Genre"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->durationColumn(), Qt::Horizontal, tr("Duration"));
-    libraryProxyModel->setHeaderData(libraryProxyModel->locationColumn(), Qt::Horizontal, tr("Location"));
-    */
+    libraryProxyModel->setTrackIdColumn(TRACK_ID_COLUMN);
+    libraryProxyModel->setTitleColumn(TITLE_COLUMN);
+    libraryProxyModel->setArtistColumn(ARTIST_COLUMN);
+    libraryProxyModel->setAlbumColumn(ALBUM_COLUMN);
+    libraryProxyModel->setTrackNumColumn(TRACK_NUM_COLUMN);
+    libraryProxyModel->setYearColumn(YEAR_COLUMN);
+    libraryProxyModel->setGenreColumn(GENRE_COLUMN);
+    libraryProxyModel->setDurationColumn(DURATION_COLUMN);
+    libraryProxyModel->setLocationColumn(LOCATION_COLUMN);
     libraryProxyModel->setDynamicSortFilter(true);
 }
 
@@ -84,11 +94,9 @@ void PlayerWindow::initializeLibraryModels()
 void PlayerWindow::initializeLibraryTreeView()
 {
     ui->playlistView->setModel(libraryProxyModel);
-    ui->playlistView->sortByColumn(libraryProxyModel->artistColumn(), Qt::SortOrder::AscendingOrder);
-    ui->playlistView->setColumnHidden(libraryProxyModel->trackIdColumn(), true);
-    ui->playlistView->setColumnHidden(libraryProxyModel->trackNumColumn(), true);
-    ui->playlistView->setColumnHidden(libraryProxyModel->yearColumn(), true);
-    ui->playlistView->setColumnHidden(libraryProxyModel->locationColumn(), true);
+    ui->playlistView->sortByColumn(libraryProxyModel->getArtistColumn(), Qt::SortOrder::AscendingOrder);
+    ui->playlistView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
+    ui->playlistView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
 }
 
 
@@ -98,8 +106,8 @@ void PlayerWindow::setUpConnections()
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
-    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updatePlaylistTreeViewSelection); // Check difference between QMediaPlayer's mediChanged and currentMediaChanged signals
-    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::setPlayButtonLabel); // maybe just rename setPlayButtonLabel to setControlState
+    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updatePlaylistTreeViewSelection);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::updatePlaybackState);
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 
@@ -118,7 +126,7 @@ void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
         // Keep track of the index of the current media.
         srcIndexOfCurrMedia = libraryProxyModel->mapToSource(selectedProxyIndex);
 
-        QModelIndex trackLocationIndex = selectedProxyIndex.siblingAtColumn(libraryProxyModel->locationColumn());
+        QModelIndex trackLocationIndex = selectedProxyIndex.siblingAtColumn(libraryProxyModel->getLocationColumn());
         QUrl trackLocation = libraryProxyModel->data(trackLocationIndex).toUrl();
         mediaPlayer->setMedia(trackLocation);
     }
@@ -165,9 +173,9 @@ void PlayerWindow::updateCurrTrackLabel()
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
     if (proxyIndexOfCurrMedia.isValid())
     {
-        QModelIndex trackTitleIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->titleColumn());
+        QModelIndex trackTitleIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->getTitleColumn());
         QString currTrack = libraryProxyModel->data(trackTitleIndex).toString();
-        QModelIndex trackArtistIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->artistColumn());
+        QModelIndex trackArtistIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->getArtistColumn());
         QString currArtist = libraryProxyModel->data(trackArtistIndex).toString();
 
         QString currentlyPlayingText = "Now Playing: ";
@@ -201,6 +209,7 @@ void PlayerWindow::setPreviousMediaForPlayback()
         setMediaForPlayback(proxyIndexOfCurrMedia);
     }
 }
+
 
 void PlayerWindow::playOrPauseMedia()
 {
@@ -239,17 +248,12 @@ void PlayerWindow::updatePlaylistTreeViewSelection()
 }
 
 
-
 void PlayerWindow::setNextMediaForPlayback()
 {
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
     QModelIndex proxyIndexOfNextMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()+1);
     setMediaForPlayback(proxyIndexOfNextMedia);
 }
-
-
-
-
 
 
 void PlayerWindow::onAddToLibraryActionTriggered()
@@ -260,27 +264,29 @@ void PlayerWindow::onAddToLibraryActionTriggered()
 
 // ===========================================================
 void PlayerWindow::insertToTrackTable(const QString &title,
-                                    const QString &artist,
-                                    const QString &album,
-                                    int trackNum,
-                                    int year,
-                                    const QString &genre,
-                                    int duration,
-                                    const QString &location)
+                                      const QString &artist,
+                                      const QString &album,
+                                      int trackNum,
+                                      int year,
+                                      const QString &genre,
+                                      int duration,
+                                      const QString &location)
 {
     QSqlRecord trackRecord = librarySourceModel->record();
     trackRecord.setGenerated("id", false);
     trackRecord.setValue("title", title);
     trackRecord.setValue("artist", artist);
     trackRecord.setValue("album", album);
-    trackRecord.setValue("track_num", trackNum);
-    trackRecord.setValue("year", year);
+    (trackNum > 0) ? trackRecord.setValue("track_num", trackNum) : trackRecord.setNull("track_num");
+    (year > 0) ? trackRecord.setValue("year", year) : trackRecord.setNull("year");
     trackRecord.setValue("genre", genre);
     trackRecord.setValue("duration", duration);
     trackRecord.setValue("location", location);
     librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
+
     qDebug() << librarySourceModel->lastError();
 }
+
 
 void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 {
@@ -293,13 +299,7 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         {
             title = QFileInfo(location).completeBaseName();
         }
-        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString() + "";
-        /* The + "" is necessary because if the metadata for the arguement passed to metaData() doesn't exist,
-         * then using .toString() on the result of metaData() will result in a NULL string. The + "" will convert
-         * this into an emptry string, which is what I need because I want an empty string to be a valid input (and
-         * for NULL to be invalid input) for the name field of the Artist table in the media database and NULL input to be invalid.
-        */
-
+        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString();
         QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
         int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
         int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
@@ -320,6 +320,7 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 }
 // ===========================================================
 
+
 void PlayerWindow::restoreWindowState()
 {
     move(settings.value("PlayerWindow/position", pos()).toPoint());
@@ -333,12 +334,14 @@ void PlayerWindow::restoreWindowState()
     }
 }
 
+
 void PlayerWindow::saveWindowState()
 {
     settings.setValue("PlayerWindow/position", pos());
     settings.setValue("PlayerWindow/isMaximized", isMaximized());
     settings.setValue("PlayerWindow/size", size());
 }
+
 
 void PlayerWindow::closeEvent(QCloseEvent *event)
 {

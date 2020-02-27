@@ -37,7 +37,6 @@ HEADERS += \
 
 FORMS += \
     playercontrols.ui \
-    player.ui \
     playerwindow.ui
 
 # Default rules for deployment.

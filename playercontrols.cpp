@@ -68,7 +68,7 @@ void PlayerControls::saveVolumeSliderState()
     settings.setValue("PlayerControls/volumeSlider", ui->volumeSlider->value());
 }
 
-void PlayerControls::setPlayButtonLabel(QMediaPlayer::State mediaState)
+void PlayerControls::updatePlaybackState(QMediaPlayer::State mediaState)
 {
     if (mediaState == QMediaPlayer::State::PlayingState)
     {

@@ -39,7 +39,7 @@ signals:
     void volumeChanged(int value);
 
 public slots:
-    void setPlayButtonLabel(QMediaPlayer::State mediaState);
+    void updatePlaybackState(QMediaPlayer::State mediaState);
     void setupProgressSlider(int mediaDurationInMillisec);
     void updateProgressSlider(int position);
 
