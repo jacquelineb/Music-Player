@@ -28,7 +28,7 @@ void PlayerControls::restoreVolumeSliderState()
 
 void PlayerControls::setConnections()
 {
-    connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::playOrPauseClicked);
+    connect(ui->playOrPauseButton, &QAbstractButton::clicked, this, &PlayerControls::playOrPauseClicked);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::prevClicked);
     connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::nextClicked);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::volumeChanged);
@@ -54,10 +54,10 @@ void PlayerControls::updatePlaybackState(QMediaPlayer::State mediaState)
 {
     if (mediaState == QMediaPlayer::State::PlayingState)
     {
-        ui->playButton->setText("Pause");
+        ui->playOrPauseButton->setText("Pause");
     }
     else
     {
-        ui->playButton->setText("Play");
+        ui->playOrPauseButton->setText("Play");
     }
 }

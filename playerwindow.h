@@ -18,18 +18,30 @@ class PlayerWindow : public QMainWindow
 
 public:
     explicit PlayerWindow(QWidget *parent = nullptr);
-    ~PlayerWindow();
+    ~PlayerWindow() override;
 
 private:
     Ui::PlayerWindow *ui;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
+    QMediaPlayer *mediaPlayer = nullptr;
+    QSqlTableModel *librarySourceModel = nullptr;
+    LibraryModel *libraryProxyModel = nullptr;
+    QModelIndex srcIndexOfCurrMedia;
 
-    void closeEvent(QCloseEvent *event);
+    void initializeMediaPlayer();
+    void initializeLibraryModels();
+    void initializeLibraryTreeView();
+    void setUpConnections();
+    void closeEvent(QCloseEvent *event) override;
     void restoreWindowState();
+    void restoreMediaPlayerVolume();
+    void restorePlaylistViewColumnWidths();
+    void saveSessionState();
     void saveWindowState();
+    void saveMediaPlayerVolume();
+    void savePlaylistViewColumnWidths();
 
-    // ========
-    QMediaPlayer *mediaToBeAdded = nullptr;
+    QMediaPlayer *mediaToBeAdded = nullptr; //
     void insertToTrackTable(const QString &title,
                             const QString &artist,
                             const QString &album,
@@ -39,33 +51,17 @@ private:
                             int duration,
                             const QString &location);
 
-
-    QSqlTableModel *librarySourceModel = nullptr;
-    LibraryModel *libraryProxyModel = nullptr;
-    void initializeLibraryModels();
-    void initializeLibraryTreeView();
-    void initializeMediaPlayer();
-    QMediaPlayer *mediaPlayer = nullptr;
-    void restorePlayerSettings();
-    void setUpConnections();
-    QModelIndex srcIndexOfCurrMedia;
+private slots:
     void onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status);
-    void playLoadedMedia();
+    void playOrPauseMedia();
+    void setMediaForPlayback(const QModelIndex &index);
     void setNextMediaForPlayback();
+    void setPreviousMediaForPlayback();
     void updateCurrTrackLabel();
     void updatePlaylistTreeViewSelection();
-    void playOrPauseMedia();
-    void setPreviousMediaForPlayback();
 
-    // ========
-
-private slots:
-    void onAddToLibraryActionTriggered();
-
-    // =======
-    void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status);
-    void setMediaForPlayback(const QModelIndex &index);
-    // =======
+    void onAddToLibraryActionTriggered(); //
+    void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status); //
 };
 
 #endif // PLAYERWINDOW_H
