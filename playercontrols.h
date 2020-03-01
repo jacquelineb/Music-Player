@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include <QMediaPlayer>
-#include <QCloseEvent>
 #include <QSettings>
 
 
@@ -18,16 +17,11 @@ class PlayerControls : public QWidget
 public:
     explicit PlayerControls(QWidget *parent = nullptr);
     ~PlayerControls();
-    int getVolume() const { return volume; }
 
 private:
     Ui::PlayerControls *ui;
-    int volume;
     QSettings settings{"session.ini", QSettings::Format::IniFormat};
-
-    void closeEvent(QCloseEvent *event);
     void restoreVolumeSliderState();
-    void saveVolumeSliderState();
     void setConnections();
 
 signals:
@@ -43,8 +37,6 @@ public slots:
     void setupProgressSlider(int mediaDurationInMillisec);
     void updateProgressSlider(int position);
 
-private slots:
-    void setVolume(int volumeSliderValue);
 };
 
 #endif // PLAYERCONTROLS_H

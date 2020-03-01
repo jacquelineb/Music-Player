@@ -39,14 +39,10 @@ PlayerWindow::~PlayerWindow()
 void PlayerWindow::initializeMediaPlayer()
 {
     mediaPlayer = new QMediaPlayer(this);
-    restorePlayerSettings();
-}
 
-
-void PlayerWindow::restorePlayerSettings()
-{
-    /* Restore volume, last playlist, etc. */
-    mediaPlayer->setVolume(ui->controls->getVolume());
+    const int DEFAULT_VOLUME = 100; // This should match DEFAULT_VOLUME in PlayerControls::restoreVolumeSliderState()
+    int volume = settings.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
+    mediaPlayer->setVolume(volume);
 }
 
 
@@ -97,12 +93,35 @@ void PlayerWindow::initializeLibraryTreeView()
     ui->playlistView->sortByColumn(libraryProxyModel->getArtistColumn(), Qt::SortOrder::AscendingOrder);
     ui->playlistView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
     ui->playlistView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
+
+    // Restore column widths.
+    const int DEFAULT_COLUMN_WIDTH = 100;
+    const int trackIdColumnWidth = settings.value("PlaylistView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int titleColumnWidth = settings.value("PlaylistView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int artistColumnWidth = settings.value("PlaylistView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int albumColumnWidth = settings.value("PlaylistView/albumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int trackNumColumnWidth = settings.value("PlaylistView/trackNumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int yearColumnWidth = settings.value("PlaylistView/yearColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int genreColumnWidth = settings.value("PlaylistView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int durationColumnWidth = settings.value("PlaylistView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int locationColumnWidth = settings.value("PlaylistView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+
+    ui->playlistView->setColumnWidth(libraryProxyModel->getTrackIdColumn(), trackIdColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getTitleColumn(), titleColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getArtistColumn(), artistColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getAlbumColumn(), albumColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getTrackNumColumn(), trackNumColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getYearColumn(), yearColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getGenreColumn(), genreColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getDurationColumn(), durationColumnWidth);
+    ui->playlistView->setColumnWidth(libraryProxyModel->getLocationColumn(), locationColumnWidth);
 }
 
 
 void PlayerWindow::setUpConnections()
 {
-    connect(ui->playlistView, &QTreeView::doubleClicked, this, &PlayerWindow::setMediaForPlayback);
+    //connect(ui->playlistView, &QTreeView::doubleClicked, this, &PlayerWindow::setMediaForPlayback);
+    connect(ui->playlistView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
@@ -111,13 +130,12 @@ void PlayerWindow::setUpConnections()
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 
-    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
+    connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &PlayerWindow::playOrPauseMedia);
     connect(ui->controls, &PlayerControls::nextClicked, this, &PlayerWindow::setNextMediaForPlayback);
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
-
 
 void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
 {
@@ -168,6 +186,32 @@ void PlayerWindow::playLoadedMedia()
 }
 
 
+void PlayerWindow::setNextMediaForPlayback()
+{
+    QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
+    QModelIndex proxyIndexOfNextMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()+1);
+    setMediaForPlayback(proxyIndexOfNextMedia);
+}
+
+
+void PlayerWindow::setPreviousMediaForPlayback()
+{
+/* Plays previous media only if playback position in current media is less than 2000ms in.
+ * Otherwise, restarts current media from beginning.
+*/
+    QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
+    if (mediaPlayer->position() < 2000)
+    {
+        QModelIndex proxyIndexOfPreviousMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()-1);
+        setMediaForPlayback(proxyIndexOfPreviousMedia);
+    }
+    else
+    {
+        setMediaForPlayback(proxyIndexOfCurrMedia);
+    }
+}
+
+
 void PlayerWindow::updateCurrTrackLabel()
 {
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
@@ -193,21 +237,11 @@ void PlayerWindow::updateCurrTrackLabel()
 }
 
 
-void PlayerWindow::setPreviousMediaForPlayback()
+void PlayerWindow::updatePlaylistTreeViewSelection()
 {
-/* Plays previous media only if playback position in current media is less than 2000ms in.
- * Otherwise, restarts current media from beginning.
-*/
+    // Automatically highlight the currently playing track in the playlist view.
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    if (mediaPlayer->position() < 2000)
-    {
-        QModelIndex proxyIndexOfPreviousMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()-1);
-        setMediaForPlayback(proxyIndexOfPreviousMedia);
-    }
-    else
-    {
-        setMediaForPlayback(proxyIndexOfCurrMedia);
-    }
+    ui->playlistView->setCurrentIndex(proxyIndexOfCurrMedia);
 }
 
 
@@ -240,22 +274,6 @@ void PlayerWindow::playOrPauseMedia()
 }
 
 
-void PlayerWindow::updatePlaylistTreeViewSelection()
-{
-    // Automatically highlight the currently playing track in the playlist view.
-    QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    ui->playlistView->setCurrentIndex(proxyIndexOfCurrMedia);
-}
-
-
-void PlayerWindow::setNextMediaForPlayback()
-{
-    QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    QModelIndex proxyIndexOfNextMedia = proxyIndexOfCurrMedia.siblingAtRow(proxyIndexOfCurrMedia.row()+1);
-    setMediaForPlayback(proxyIndexOfNextMedia);
-}
-
-
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
     QUrl filename = QFileDialog::getOpenFileUrl(this, "Add file to library");
@@ -282,8 +300,8 @@ void PlayerWindow::insertToTrackTable(const QString &title,
     trackRecord.setValue("genre", genre);
     trackRecord.setValue("duration", duration);
     trackRecord.setValue("location", location);
-    librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
 
+    qDebug() << librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
     qDebug() << librarySourceModel->lastError();
 }
 
@@ -306,16 +324,9 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
         int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
 
-        qDebug() << "Location: " << location;
-        qDebug() << "Title: " << title;
-        qDebug() << "Artist: " << artist;
-        qDebug() << "Album: " << album;
-        qDebug() << "Track Number: " << trackNum;
-        qDebug() << "Year: " << year;
-        qDebug() << "Genre: " << genre;
-        qDebug() << "Duration: " << duration;
-
         insertToTrackTable(title, artist, album, trackNum, year, genre, duration, location);
+        // make insertToTrackTable() a bool. If false, notify the user that the track couldn't be added to the library.
+        // One reason it might have failed is if the song already exists in the library.
     }
 }
 // ===========================================================
@@ -332,7 +343,8 @@ void PlayerWindow::restoreWindowState()
     {
         resize(settings.value("PlayerWindow/size", size()).toSize());
     }
-}
+
+    }
 
 
 void PlayerWindow::saveWindowState()
@@ -340,12 +352,34 @@ void PlayerWindow::saveWindowState()
     settings.setValue("PlayerWindow/position", pos());
     settings.setValue("PlayerWindow/isMaximized", isMaximized());
     settings.setValue("PlayerWindow/size", size());
+
+    settings.setValue("MediaPlayer/volume", mediaPlayer->volume());
+
+    // Save the column widths
+    int trackIdColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTrackIdColumn());
+    int titleColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTitleColumn());
+    int artistColumnWidthwidth = ui->playlistView->columnWidth(libraryProxyModel->getArtistColumn());
+    int albumColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getAlbumColumn());
+    int trackNumColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTrackNumColumn());
+    int yearColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getYearColumn());
+    int genreColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getGenreColumn());
+    int durationColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getDurationColumn());
+    int locationColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getLocationColumn());
+
+    settings.setValue("PlaylistView/trackIdColumnWidth", trackIdColumnWidth);
+    settings.setValue("PlaylistView/titleColumnWidth", titleColumnWidth);
+    settings.setValue("PlaylistView/artistColumnWidth", artistColumnWidthwidth);
+    settings.setValue("PlaylistView/albumColumnWidth", albumColumnWidth);
+    settings.setValue("PlaylistView/trackNumColumnWidth", trackNumColumnWidth);
+    settings.setValue("PlaylistView/yearColumnWidth", yearColumnWidth);
+    settings.setValue("PlaylistView/genreColumnWidth", genreColumnWidth);
+    settings.setValue("PlaylistView/durationColumnWidth", durationColumnWidth);
+    settings.setValue("PlaylistView/locationColumnWidth", locationColumnWidth);
 }
 
 
 void PlayerWindow::closeEvent(QCloseEvent *event)
 {
     saveWindowState();
-    ui->controls->close();
     event->accept();
 }

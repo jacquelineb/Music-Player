@@ -19,8 +19,11 @@ void PlayerControls::restoreVolumeSliderState()
 {
     // rename this to restoreControlSettings or initializeControlSettings
     // initialize PlayerControls::state in here instead of directly in constructor
-    ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
-    setVolume(ui->volumeSlider->value());
+    //ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
+
+    const int DEFAULT_VOLUME = 100;
+    int volume = settings.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
+    ui->volumeSlider->setValue(volume);
 }
 
 void PlayerControls::setConnections()
@@ -28,27 +31,10 @@ void PlayerControls::setConnections()
     connect(ui->playButton, &QAbstractButton::clicked, this, &PlayerControls::playOrPauseClicked);
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::prevClicked);
     connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::nextClicked);
-    connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::setVolume);
+    connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::volumeChanged);
     connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
 }
 
-void PlayerControls::setVolume(int volumeSliderValue)
-{
-    //qreal linearVolume = QAudio::convertVolume(volumeSliderValue / qreal(100.0),
-    //                                           QAudio::LogarithmicVolumeScale,
-    //                                           QAudio::LinearVolumeScale);
-    //volume = qRound(linearVolume * 100);
-    //emit volumeChanged(volume);
-
-    volume = volumeSliderValue;
-    emit volumeChanged(volume);
-}
-
-void PlayerControls::closeEvent(QCloseEvent *event)
-{
-    saveVolumeSliderState();
-    event->accept();
-}
 
 void PlayerControls::updateProgressSlider(int position)
 {
@@ -63,10 +49,6 @@ void PlayerControls::setupProgressSlider(int mediaDurationInMillisec)
     ui->progressSlider->setMaximum(mediaDurationInMillisec);
 }
 
-void PlayerControls::saveVolumeSliderState()
-{
-    settings.setValue("PlayerControls/volumeSlider", ui->volumeSlider->value());
-}
 
 void PlayerControls::updatePlaybackState(QMediaPlayer::State mediaState)
 {
