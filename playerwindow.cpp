@@ -95,16 +95,17 @@ void PlayerWindow::initializeLibraryTreeView()
 {
     ui->playlistView->setModel(libraryProxyModel);
     ui->playlistView->setCurrentIndex(QModelIndex());
-    ui->playlistView->sortByColumn(libraryProxyModel->getArtistColumn(), Qt::SortOrder::AscendingOrder);
+    restorePlaylistViewState();
+
     //ui->playlistView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
     //ui->playlistView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
-    restorePlaylistViewColumnWidths();
 }
 
 
-void PlayerWindow::restorePlaylistViewColumnWidths()
+void PlayerWindow::restorePlaylistViewState()
 {
-    const int DEFAULT_COLUMN_WIDTH = 100;
+    // Restore the column widths
+    const int DEFAULT_COLUMN_WIDTH = ui->playlistView->header()->defaultSectionSize();
     const int trackIdColumnWidth = settings.value("PlaylistView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
     const int titleColumnWidth = settings.value("PlaylistView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
     const int artistColumnWidth = settings.value("PlaylistView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
@@ -114,7 +115,6 @@ void PlayerWindow::restorePlaylistViewColumnWidths()
     const int genreColumnWidth = settings.value("PlaylistView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
     const int durationColumnWidth = settings.value("PlaylistView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
     const int locationColumnWidth = settings.value("PlaylistView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-
     ui->playlistView->setColumnWidth(libraryProxyModel->getTrackIdColumn(), trackIdColumnWidth);
     ui->playlistView->setColumnWidth(libraryProxyModel->getTitleColumn(), titleColumnWidth);
     ui->playlistView->setColumnWidth(libraryProxyModel->getArtistColumn(), artistColumnWidth);
@@ -124,6 +124,19 @@ void PlayerWindow::restorePlaylistViewColumnWidths()
     ui->playlistView->setColumnWidth(libraryProxyModel->getGenreColumn(), genreColumnWidth);
     ui->playlistView->setColumnWidth(libraryProxyModel->getDurationColumn(), durationColumnWidth);
     ui->playlistView->setColumnWidth(libraryProxyModel->getLocationColumn(), locationColumnWidth);
+
+    // Restore which column was last sorted
+    Qt::SortOrder sortOrder;
+    if (settings.value("PlaylistView/sortOrder").toInt() == 0)
+    {
+        sortOrder = Qt::SortOrder::AscendingOrder;
+    }
+    else
+    {
+        sortOrder = Qt::SortOrder::DescendingOrder;
+    }
+    const int sortColumn = settings.value("PlaylistView/sortByColumn").toInt();
+    ui->playlistView->sortByColumn(sortColumn, sortOrder);
 }
 
 
@@ -144,6 +157,7 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::nextClicked, this, &PlayerWindow::setNextMediaForPlayback);
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
+
 
 void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
 {
@@ -170,7 +184,6 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
     {
         qDebug() << "Playing media";
         mediaPlayer->play();
-
     }
     else if (status == QMediaPlayer::EndOfMedia)
     {
@@ -258,25 +271,25 @@ void PlayerWindow::playOrPauseMedia()
     {
         mediaPlayer->pause();
     }
-    else // Pause or Stopped State
+    else if (mediaPlayer->state() == QMediaPlayer::PausedState)
     {
-        if (mediaPlayer->state() == QMediaPlayer::State::StoppedState)
-        {
-            /* If pressing play button from a stopped state,
-             * start playback from the first highlighted song if there is one.
-             * Otherwise just start playback from the beginning of playlist.
-            */
-            QModelIndex selectedIndex = ui->playlistView->currentIndex();
-            if (selectedIndex.isValid())
-            {
-                setMediaForPlayback(selectedIndex);
-            }
-            else
-            {
-                setMediaForPlayback(libraryProxyModel->index(0, 0, QModelIndex()));
-            }
-        }
         mediaPlayer->play();
+    }
+    else // StoppedState
+    {
+        /* If pressing play button from a stopped state,
+         * start playback from the first highlighted song if there is one.
+         * Otherwise just start playback from the beginning of playlist.
+        */
+        QModelIndex selectedIndex = ui->playlistView->currentIndex();
+        if (selectedIndex.isValid())
+        {
+            setMediaForPlayback(selectedIndex);
+        }
+        else // Thinking of just removing this branch
+        {
+            setMediaForPlayback(libraryProxyModel->index(0, 0, QModelIndex()));
+        }
     }
 }
 
@@ -287,7 +300,7 @@ void PlayerWindow::onAddToLibraryActionTriggered()
     mediaToBeAdded->setMedia(filename);
 }
 
-// ===========================================================
+
 void PlayerWindow::insertToTrackTable(const QString &title,
                                       const QString &artist,
                                       const QString &album,
@@ -336,7 +349,6 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
         // One reason it might have failed is if the song already exists in the library.
     }
 }
-// ===========================================================
 
 
 void PlayerWindow::restoreWindowState()
@@ -364,7 +376,7 @@ void PlayerWindow::saveSessionState()
 {
     saveWindowState();
     saveMediaPlayerVolume();
-    savePlaylistViewColumnWidths();
+    savePlaylistViewState();
 }
 
 
@@ -382,7 +394,7 @@ void PlayerWindow::saveMediaPlayerVolume()
 }
 
 
-void PlayerWindow::savePlaylistViewColumnWidths()
+void PlayerWindow::savePlaylistViewState()
 {
     const int trackIdColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTrackIdColumn());
     const int titleColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTitleColumn());
@@ -402,4 +414,9 @@ void PlayerWindow::savePlaylistViewColumnWidths()
     settings.setValue("PlaylistView/genreColumnWidth", genreColumnWidth);
     settings.setValue("PlaylistView/durationColumnWidth", durationColumnWidth);
     settings.setValue("PlaylistView/locationColumnWidth", locationColumnWidth);
+
+    const int sortedColumn = ui->playlistView->header()->sortIndicatorSection();
+    const int sortOrder = ui->playlistView->header()->sortIndicatorOrder();
+    settings.setValue("PlaylistView/sortByColumn", sortedColumn);
+    settings.setValue("PlaylistView/sortOrder", sortOrder);
 }

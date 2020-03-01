@@ -35,11 +35,11 @@ private:
     void closeEvent(QCloseEvent *event) override;
     void restoreWindowState();
     void restoreMediaPlayerVolume();
-    void restorePlaylistViewColumnWidths();
+    void restorePlaylistViewState();
     void saveSessionState();
     void saveWindowState();
     void saveMediaPlayerVolume();
-    void savePlaylistViewColumnWidths();
+    void savePlaylistViewState();
 
     QMediaPlayer *mediaToBeAdded = nullptr; //
     void insertToTrackTable(const QString &title,
