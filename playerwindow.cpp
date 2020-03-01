@@ -344,7 +344,7 @@ void PlayerWindow::restoreWindowState()
         resize(settings.value("PlayerWindow/size", size()).toSize());
     }
 
-    }
+}
 
 
 void PlayerWindow::saveWindowState()

@@ -34,6 +34,9 @@
        <height>20</height>
       </size>
      </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="maximum">
       <number>0</number>
      </property>
@@ -80,6 +83,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>prev</string>
        </property>
@@ -118,6 +124,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>play</string>
        </property>
@@ -153,6 +162,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>next</string>
        </property>
@@ -187,6 +199,9 @@
          <width>200</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
        </property>
        <property name="maximum">
         <number>100</number>
