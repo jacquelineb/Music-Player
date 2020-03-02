@@ -28,12 +28,14 @@ SOURCES += \
     librarymodel.cpp \
     main.cpp \
     playercontrols.cpp \
-    playerwindow.cpp
+    playerwindow.cpp \
+    trackdurationdelegate.cpp
 
 HEADERS += \
     librarymodel.h \
     playercontrols.h \
-    playerwindow.h
+    playerwindow.h \
+    trackdurationdelegate.h
 
 FORMS += \
     playercontrols.ui \

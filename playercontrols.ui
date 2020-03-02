@@ -190,13 +190,13 @@
       <widget class="QSlider" name="volumeSlider">
        <property name="minimumSize">
         <size>
-         <width>200</width>
+         <width>175</width>
          <height>20</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>200</width>
+         <width>175</width>
          <height>20</height>
         </size>
        </property>

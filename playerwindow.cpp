@@ -8,6 +8,10 @@
 #include <QSqlError>
 #include <QMediaMetaData>
 #include <QSqlRecord>
+#include <QTime> //
+#include <QItemDelegate>
+
+#include <trackdurationdelegate.h>
 
 PlayerWindow::PlayerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -99,6 +103,8 @@ void PlayerWindow::initializeLibraryTreeView()
 
     //ui->playlistView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
     //ui->playlistView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
+
+    ui->playlistView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate);
 }
 
 
@@ -153,7 +159,7 @@ void PlayerWindow::setUpConnections()
 
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
-    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &PlayerWindow::playOrPauseMedia);
+    connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &PlayerWindow::onPlayOrPauseSignal);
     connect(ui->controls, &PlayerControls::nextClicked, this, &PlayerWindow::setNextMediaForPlayback);
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
@@ -178,6 +184,7 @@ void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
 }
 
 
+
 void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia)
@@ -200,9 +207,8 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
         qDebug() << "Line 179: " << status;
     }
 
-
-    qDebug() << "184: " << mediaPlayer->errorString();
-    qDebug() << mediaPlayer->error();
+    //qDebug() << "184: " << mediaPlayer->errorString();
+    //qDebug() << mediaPlayer->error();
 }
 
 
@@ -265,7 +271,7 @@ void PlayerWindow::updatePlaylistTreeViewSelection()
 }
 
 
-void PlayerWindow::playOrPauseMedia()
+void PlayerWindow::onPlayOrPauseSignal()
 {
     if (mediaPlayer->state() == QMediaPlayer::State::PlayingState)
     {
@@ -301,6 +307,31 @@ void PlayerWindow::onAddToLibraryActionTriggered()
 }
 
 
+void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    if (status == QMediaPlayer::LoadedMedia)
+    {
+        // Can only get the metadata once the media has loaded
+        QString location = mediaToBeAdded->currentMedia().canonicalUrl().toLocalFile();
+        QString title = mediaToBeAdded->metaData(QMediaMetaData::Title).toString();
+        if (title.isEmpty())
+        {
+            title = QFileInfo(location).completeBaseName();
+        }
+        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString();
+        QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
+        int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
+        int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
+        QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
+        int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
+
+        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, location);
+        // make insertToTrackTable() a bool. If false, notify the user that the track couldn't be added to the library.
+        // One reason it might have failed is if the song already exists in the library.
+    }
+}
+
+
 void PlayerWindow::insertToTrackTable(const QString &title,
                                       const QString &artist,
                                       const QString &album,
@@ -325,30 +356,6 @@ void PlayerWindow::insertToTrackTable(const QString &title,
     qDebug() << librarySourceModel->lastError();
 }
 
-
-void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-    if (status == QMediaPlayer::LoadedMedia)
-    {
-        // Can only get the metadata once the media has loaded
-        QString location = mediaToBeAdded->currentMedia().canonicalUrl().toLocalFile();
-        QString title = mediaToBeAdded->metaData(QMediaMetaData::Title).toString();
-        if (title.isEmpty())
-        {
-            title = QFileInfo(location).completeBaseName();
-        }
-        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString();
-        QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
-        int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
-        int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
-        QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
-        int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
-
-        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, location);
-        // make insertToTrackTable() a bool. If false, notify the user that the track couldn't be added to the library.
-        // One reason it might have failed is if the song already exists in the library.
-    }
-}
 
 
 void PlayerWindow::restoreWindowState()

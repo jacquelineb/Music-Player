@@ -32,10 +32,10 @@ private:
     void initializeLibraryModels();
     void initializeLibraryTreeView();
     void setUpConnections();
-    void closeEvent(QCloseEvent *event) override;
     void restoreWindowState();
     void restoreMediaPlayerVolume();
     void restorePlaylistViewState();
+    void closeEvent(QCloseEvent *event) override;
     void saveSessionState();
     void saveWindowState();
     void saveMediaPlayerVolume();
@@ -53,7 +53,7 @@ private:
 
 private slots:
     void onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status);
-    void playOrPauseMedia();
+    void onPlayOrPauseSignal();
     void setMediaForPlayback(const QModelIndex &index);
     void setNextMediaForPlayback();
     void setPreviousMediaForPlayback();
