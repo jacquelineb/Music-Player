@@ -34,14 +34,14 @@ private:
     void setUpConnections();
     void restoreWindowState();
     void restoreMediaPlayerVolume();
-    void restorePlaylistViewState();
+    void restoreLibraryViewState();
     void closeEvent(QCloseEvent *event) override;
     void saveSessionState();
     void saveWindowState();
     void saveMediaPlayerVolume();
-    void savePlaylistViewState();
+    void saveLibraryViewState();
 
-    QMediaPlayer *mediaToBeAdded = nullptr; //
+    QMediaPlayer *mediaToAdd = nullptr; //
     void insertToTrackTable(const QString &title,
                             const QString &artist,
                             const QString &album,

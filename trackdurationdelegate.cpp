@@ -4,17 +4,16 @@
 
 TrackDurationDelegate::TrackDurationDelegate()
 {
-
 }
 
 QString TrackDurationDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
-    int millisec = value.toInt();
-    int remainingMillisec = millisec;
-    int hours = millisec / 1000 / 60 / 60;
-    remainingMillisec = millisec - (hours * 1000 * 60 * 60);
+    int durationInMillisec = value.toInt();
+    int remainingMillisec = durationInMillisec;
+    int hours = durationInMillisec / 1000 / 60 / 60;
+    remainingMillisec = durationInMillisec - (hours * 1000 * 60 * 60);
     int minutes = remainingMillisec / 1000 / 60;
-    remainingMillisec = millisec - (minutes * 1000 * 60);
+    remainingMillisec = durationInMillisec - (minutes * 1000 * 60);
     int seconds = remainingMillisec / 1000;
     remainingMillisec = remainingMillisec - (seconds * 1000);
 

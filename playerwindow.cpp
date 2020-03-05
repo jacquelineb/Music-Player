@@ -28,8 +28,8 @@ PlayerWindow::PlayerWindow(QWidget *parent) :
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
     // =======
     // Change this later. Use taglib. Then combine the code into onAddToLibraryActionTriggered.
-    mediaToBeAdded = new QMediaPlayer(this);
-    connect(mediaToBeAdded, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onAddMediaStatusChanged);
+    mediaToAdd = new QMediaPlayer(this);
+    connect(mediaToAdd, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onAddMediaStatusChanged);
     // =======
 }
 
@@ -97,43 +97,43 @@ void PlayerWindow::initializeLibraryModels()
 
 void PlayerWindow::initializeLibraryTreeView()
 {
-    ui->playlistView->setModel(libraryProxyModel);
-    ui->playlistView->setCurrentIndex(QModelIndex());
-    restorePlaylistViewState();
+    ui->libraryView->setModel(libraryProxyModel);
+    ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate);
+    ui->libraryView->setCurrentIndex(QModelIndex());
+    restoreLibraryViewState();
 
-    //ui->playlistView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
-    //ui->playlistView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
+    //ui->libraryView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
+    //ui->libraryView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
 
-    ui->playlistView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate);
 }
 
 
-void PlayerWindow::restorePlaylistViewState()
+void PlayerWindow::restoreLibraryViewState()
 {
     // Restore the column widths
-    const int DEFAULT_COLUMN_WIDTH = ui->playlistView->header()->defaultSectionSize();
-    const int trackIdColumnWidth = settings.value("PlaylistView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int titleColumnWidth = settings.value("PlaylistView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int artistColumnWidth = settings.value("PlaylistView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int albumColumnWidth = settings.value("PlaylistView/albumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int trackNumColumnWidth = settings.value("PlaylistView/trackNumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int yearColumnWidth = settings.value("PlaylistView/yearColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int genreColumnWidth = settings.value("PlaylistView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int durationColumnWidth = settings.value("PlaylistView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int locationColumnWidth = settings.value("PlaylistView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    ui->playlistView->setColumnWidth(libraryProxyModel->getTrackIdColumn(), trackIdColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getTitleColumn(), titleColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getArtistColumn(), artistColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getAlbumColumn(), albumColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getTrackNumColumn(), trackNumColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getYearColumn(), yearColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getGenreColumn(), genreColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getDurationColumn(), durationColumnWidth);
-    ui->playlistView->setColumnWidth(libraryProxyModel->getLocationColumn(), locationColumnWidth);
+    const int DEFAULT_COLUMN_WIDTH = ui->libraryView->header()->defaultSectionSize();
+    const int trackIdColumnWidth = settings.value("LibraryView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int titleColumnWidth = settings.value("LibraryView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int artistColumnWidth = settings.value("LibraryView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int albumColumnWidth = settings.value("LibraryView/albumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int trackNumColumnWidth = settings.value("LibraryView/trackNumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int yearColumnWidth = settings.value("LibraryView/yearColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int genreColumnWidth = settings.value("LibraryView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int durationColumnWidth = settings.value("LibraryView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int locationColumnWidth = settings.value("LibraryView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    ui->libraryView->setColumnWidth(libraryProxyModel->getTrackIdColumn(), trackIdColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getTitleColumn(), titleColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getArtistColumn(), artistColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getAlbumColumn(), albumColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getTrackNumColumn(), trackNumColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getYearColumn(), yearColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getGenreColumn(), genreColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getDurationColumn(), durationColumnWidth);
+    ui->libraryView->setColumnWidth(libraryProxyModel->getLocationColumn(), locationColumnWidth);
 
     // Restore which column was last sorted
     Qt::SortOrder sortOrder;
-    if (settings.value("PlaylistView/sortOrder").toInt() == 0)
+    if (settings.value("LibraryView/sortOrder").toInt() == 0)
     {
         sortOrder = Qt::SortOrder::AscendingOrder;
     }
@@ -141,14 +141,14 @@ void PlayerWindow::restorePlaylistViewState()
     {
         sortOrder = Qt::SortOrder::DescendingOrder;
     }
-    const int sortColumn = settings.value("PlaylistView/sortByColumn").toInt();
-    ui->playlistView->sortByColumn(sortColumn, sortOrder);
+    const int sortColumn = settings.value("LibraryView/sortByColumn").toInt();
+    ui->libraryView->sortByColumn(sortColumn, sortOrder);
 }
 
 
 void PlayerWindow::setUpConnections()
 {
-    connect(ui->playlistView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
+    connect(ui->libraryView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
@@ -189,7 +189,8 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia)
     {
-        qDebug() << "Playing media";
+        //qDebug() << mediaPlayer->isAudioAvailable();
+        //qDebug() << mediaPlayer->isVideoAvailable();
         mediaPlayer->play();
     }
     else if (status == QMediaPlayer::EndOfMedia)
@@ -234,6 +235,7 @@ void PlayerWindow::setPreviousMediaForPlayback()
     else
     {
         setMediaForPlayback(proxyIndexOfCurrMedia);
+        //mediaPlayer->setPosition(0);
     }
 }
 
@@ -267,7 +269,7 @@ void PlayerWindow::updatePlaylistTreeViewSelection()
 {
     // Automatically highlight the currently playing track in the playlist view.
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
-    ui->playlistView->setCurrentIndex(proxyIndexOfCurrMedia);
+    ui->libraryView->setCurrentIndex(proxyIndexOfCurrMedia);
 }
 
 
@@ -287,7 +289,7 @@ void PlayerWindow::onPlayOrPauseSignal()
          * start playback from the first highlighted song if there is one.
          * Otherwise just start playback from the beginning of playlist.
         */
-        QModelIndex selectedIndex = ui->playlistView->currentIndex();
+        QModelIndex selectedIndex = ui->libraryView->currentIndex();
         if (selectedIndex.isValid())
         {
             setMediaForPlayback(selectedIndex);
@@ -303,7 +305,11 @@ void PlayerWindow::onPlayOrPauseSignal()
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
     QUrl filename = QFileDialog::getOpenFileUrl(this, "Add file to library");
-    mediaToBeAdded->setMedia(filename);
+
+    // To add a file to the library I need to get its metadata.
+    // However, I can only get the media file's metadata once it has been set and loaded.
+    // See onAddMediaStatusChanged() slot.
+    mediaToAdd->setMedia(filename);
 }
 
 
@@ -312,18 +318,18 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
     if (status == QMediaPlayer::LoadedMedia)
     {
         // Can only get the metadata once the media has loaded
-        QString location = mediaToBeAdded->currentMedia().canonicalUrl().toLocalFile();
-        QString title = mediaToBeAdded->metaData(QMediaMetaData::Title).toString();
+        QString location = mediaToAdd->currentMedia().canonicalUrl().toLocalFile();
+        QString title = mediaToAdd->metaData(QMediaMetaData::Title).toString();
         if (title.isEmpty())
         {
             title = QFileInfo(location).completeBaseName();
         }
-        QString artist = mediaToBeAdded->metaData(QMediaMetaData::Author).toString();
-        QString album = mediaToBeAdded->metaData(QMediaMetaData::AlbumTitle).toString();
-        int trackNum = mediaToBeAdded->metaData(QMediaMetaData::TrackNumber).toInt();
-        int year = mediaToBeAdded->metaData(QMediaMetaData::Year).toInt();
-        QString genre = mediaToBeAdded->metaData(QMediaMetaData::Genre).toString();
-        int duration = mediaToBeAdded->metaData(QMediaMetaData::Duration).toInt();
+        QString artist = mediaToAdd->metaData(QMediaMetaData::Author).toString();
+        QString album = mediaToAdd->metaData(QMediaMetaData::AlbumTitle).toString();
+        int trackNum = mediaToAdd->metaData(QMediaMetaData::TrackNumber).toInt();
+        int year = mediaToAdd->metaData(QMediaMetaData::Year).toInt();
+        QString genre = mediaToAdd->metaData(QMediaMetaData::Genre).toString();
+        int duration = mediaToAdd->metaData(QMediaMetaData::Duration).toInt();
 
         insertToTrackTable(title, artist, album, trackNum, year, genre, duration, location);
         // make insertToTrackTable() a bool. If false, notify the user that the track couldn't be added to the library.
@@ -357,7 +363,6 @@ void PlayerWindow::insertToTrackTable(const QString &title,
 }
 
 
-
 void PlayerWindow::restoreWindowState()
 {
     move(settings.value("PlayerWindow/position", pos()).toPoint());
@@ -383,7 +388,7 @@ void PlayerWindow::saveSessionState()
 {
     saveWindowState();
     saveMediaPlayerVolume();
-    savePlaylistViewState();
+    saveLibraryViewState();
 }
 
 
@@ -401,29 +406,29 @@ void PlayerWindow::saveMediaPlayerVolume()
 }
 
 
-void PlayerWindow::savePlaylistViewState()
+void PlayerWindow::saveLibraryViewState()
 {
-    const int trackIdColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTrackIdColumn());
-    const int titleColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTitleColumn());
-    const int artistColumnWidthwidth = ui->playlistView->columnWidth(libraryProxyModel->getArtistColumn());
-    const int albumColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getAlbumColumn());
-    const int trackNumColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getTrackNumColumn());
-    const int yearColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getYearColumn());
-    const int genreColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getGenreColumn());
-    const int durationColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getDurationColumn());
-    const int locationColumnWidth = ui->playlistView->columnWidth(libraryProxyModel->getLocationColumn());
-    settings.setValue("PlaylistView/trackIdColumnWidth", trackIdColumnWidth);
-    settings.setValue("PlaylistView/titleColumnWidth", titleColumnWidth);
-    settings.setValue("PlaylistView/artistColumnWidth", artistColumnWidthwidth);
-    settings.setValue("PlaylistView/albumColumnWidth", albumColumnWidth);
-    settings.setValue("PlaylistView/trackNumColumnWidth", trackNumColumnWidth);
-    settings.setValue("PlaylistView/yearColumnWidth", yearColumnWidth);
-    settings.setValue("PlaylistView/genreColumnWidth", genreColumnWidth);
-    settings.setValue("PlaylistView/durationColumnWidth", durationColumnWidth);
-    settings.setValue("PlaylistView/locationColumnWidth", locationColumnWidth);
+    const int trackIdColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getTrackIdColumn());
+    const int titleColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getTitleColumn());
+    const int artistColumnWidthwidth = ui->libraryView->columnWidth(libraryProxyModel->getArtistColumn());
+    const int albumColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getAlbumColumn());
+    const int trackNumColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getTrackNumColumn());
+    const int yearColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getYearColumn());
+    const int genreColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getGenreColumn());
+    const int durationColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getDurationColumn());
+    const int locationColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getLocationColumn());
+    settings.setValue("LibraryView/trackIdColumnWidth", trackIdColumnWidth);
+    settings.setValue("LibraryView/titleColumnWidth", titleColumnWidth);
+    settings.setValue("LibraryView/artistColumnWidth", artistColumnWidthwidth);
+    settings.setValue("LibraryView/albumColumnWidth", albumColumnWidth);
+    settings.setValue("LibraryView/trackNumColumnWidth", trackNumColumnWidth);
+    settings.setValue("LibraryView/yearColumnWidth", yearColumnWidth);
+    settings.setValue("LibraryView/genreColumnWidth", genreColumnWidth);
+    settings.setValue("LibraryView/durationColumnWidth", durationColumnWidth);
+    settings.setValue("LibraryView/locationColumnWidth", locationColumnWidth);
 
-    const int sortedColumn = ui->playlistView->header()->sortIndicatorSection();
-    const int sortOrder = ui->playlistView->header()->sortIndicatorOrder();
-    settings.setValue("PlaylistView/sortByColumn", sortedColumn);
-    settings.setValue("PlaylistView/sortOrder", sortOrder);
+    const int sortedColumn = ui->libraryView->header()->sortIndicatorSection();
+    const int sortOrder = ui->libraryView->header()->sortIndicatorOrder();
+    settings.setValue("LibraryView/sortByColumn", sortedColumn);
+    settings.setValue("LibraryView/sortOrder", sortOrder);
 }
