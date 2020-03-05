@@ -1,17 +1,14 @@
 #include "playerwindow.h"
 #include "ui_playerwindow.h"
 
-#include <QCloseEvent>
-#include <QFileDialog>
-#include <QSettings>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QMediaMetaData>
-#include <QSqlRecord>
-#include <QTime> //
-#include <QItemDelegate>
+#include "trackdurationdelegate.h"
 
-#include <trackdurationdelegate.h>
+#include <taglib/fileref.h>
+
+#include <QFileDialog>
+#include <QSqlError>
+#include <QSqlRecord>
+
 
 PlayerWindow::PlayerWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -19,18 +16,10 @@ PlayerWindow::PlayerWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     restoreWindowState();
-
     initializeMediaPlayer();
     initializeLibraryModels();
     initializeLibraryTreeView();
     setUpConnections();
-
-    connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
-    // =======
-    // Change this later. Use taglib. Then combine the code into onAddToLibraryActionTriggered.
-    mediaToAdd = new QMediaPlayer(this);
-    connect(mediaToAdd, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onAddMediaStatusChanged);
-    // =======
 }
 
 
@@ -101,10 +90,6 @@ void PlayerWindow::initializeLibraryTreeView()
     ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate);
     ui->libraryView->setCurrentIndex(QModelIndex());
     restoreLibraryViewState();
-
-    //ui->libraryView->setColumnHidden(libraryProxyModel->getTrackIdColumn(), true);
-    //ui->libraryView->setColumnHidden(libraryProxyModel->getLocationColumn(), true);
-
 }
 
 
@@ -148,6 +133,8 @@ void PlayerWindow::restoreLibraryViewState()
 
 void PlayerWindow::setUpConnections()
 {
+    connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
+
     connect(ui->libraryView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
@@ -304,36 +291,20 @@ void PlayerWindow::onPlayOrPauseSignal()
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
-    QUrl filename = QFileDialog::getOpenFileUrl(this, "Add file to library");
+    QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
 
-    // To add a file to the library I need to get its metadata.
-    // However, I can only get the media file's metadata once it has been set and loaded.
-    // See onAddMediaStatusChanged() slot.
-    mediaToAdd->setMedia(filename);
-}
-
-
-void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
-{
-    if (status == QMediaPlayer::LoadedMedia)
+    TagLib::FileRef fileRef(filepath.toStdWString().c_str());
+    if (!fileRef.isNull())
     {
-        // Can only get the metadata once the media has loaded
-        QString location = mediaToAdd->currentMedia().canonicalUrl().toLocalFile();
-        QString title = mediaToAdd->metaData(QMediaMetaData::Title).toString();
-        if (title.isEmpty())
-        {
-            title = QFileInfo(location).completeBaseName();
-        }
-        QString artist = mediaToAdd->metaData(QMediaMetaData::Author).toString();
-        QString album = mediaToAdd->metaData(QMediaMetaData::AlbumTitle).toString();
-        int trackNum = mediaToAdd->metaData(QMediaMetaData::TrackNumber).toInt();
-        int year = mediaToAdd->metaData(QMediaMetaData::Year).toInt();
-        QString genre = mediaToAdd->metaData(QMediaMetaData::Genre).toString();
-        int duration = mediaToAdd->metaData(QMediaMetaData::Duration).toInt();
+        QString title = fileRef.tag()->title().toCString(true);
+        QString artist = fileRef.tag()->artist().toCString(true);
+        QString album = fileRef.tag()->album().toCString(true);
+        unsigned int trackNum = fileRef.tag()->track();
+        unsigned int year = fileRef.tag()->year();
+        QString genre = fileRef.tag()->genre().toCString(true);
+        int duration = fileRef.audioProperties()->lengthInMilliseconds();
 
-        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, location);
-        // make insertToTrackTable() a bool. If false, notify the user that the track couldn't be added to the library.
-        // One reason it might have failed is if the song already exists in the library.
+        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filepath);
     }
 }
 
@@ -341,8 +312,8 @@ void PlayerWindow::onAddMediaStatusChanged(QMediaPlayer::MediaStatus status)
 void PlayerWindow::insertToTrackTable(const QString &title,
                                       const QString &artist,
                                       const QString &album,
-                                      int trackNum,
-                                      int year,
+                                      unsigned int trackNum,
+                                      unsigned int year,
                                       const QString &genre,
                                       int duration,
                                       const QString &location)

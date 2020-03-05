@@ -1,6 +1,7 @@
 #include "trackdurationdelegate.h"
+
 #include <QTime>
-#include <QDebug>
+
 
 TrackDurationDelegate::TrackDurationDelegate()
 {

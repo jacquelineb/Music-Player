@@ -1,5 +1,5 @@
 #include "librarymodel.h"
-#include <QDebug> // Delete this later
+
 
 LibraryModel::LibraryModel(QObject *parent) : QSortFilterProxyModel(parent)
 {

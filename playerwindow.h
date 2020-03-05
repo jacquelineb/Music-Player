@@ -1,12 +1,14 @@
 #ifndef PLAYERWINDOW_H
 #define PLAYERWINDOW_H
 
+#include "librarymodel.h"
+
+#include <QCloseEvent>
 #include <QMainWindow>
-#include <QSettings>
 #include <QMediaPlayer>
+#include <QSettings>
 #include <QSqlTableModel>
 
-#include "librarymodel.h"
 
 namespace Ui {
 class PlayerWindow;
@@ -41,17 +43,17 @@ private:
     void saveMediaPlayerVolume();
     void saveLibraryViewState();
 
-    QMediaPlayer *mediaToAdd = nullptr; //
     void insertToTrackTable(const QString &title,
                             const QString &artist,
                             const QString &album,
-                            int trackNum,
-                            int year,
+                            unsigned int trackNum,
+                            unsigned int year,
                             const QString &genre,
                             int duration,
                             const QString &location);
 
 private slots:
+    void onAddToLibraryActionTriggered();
     void onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status);
     void onPlayOrPauseSignal();
     void setMediaForPlayback(const QModelIndex &index);
@@ -60,8 +62,6 @@ private slots:
     void updateCurrTrackLabel();
     void updatePlaylistTreeViewSelection();
 
-    void onAddToLibraryActionTriggered(); //
-    void onAddMediaStatusChanged(QMediaPlayer::MediaStatus status); //
 };
 
 #endif // PLAYERWINDOW_H

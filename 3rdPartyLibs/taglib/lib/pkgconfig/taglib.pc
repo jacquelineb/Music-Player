@@ -1,0 +1,11 @@
+prefix=Q:/Program Files (x86)/taglib
+exec_prefix=Q:/Program Files (x86)/taglib
+libdir=Q:/Program Files (x86)/taglib/lib
+includedir=Q:/Program Files (x86)/taglib/include
+
+Name: TagLib
+Description: Audio meta-data library
+Requires: 
+Version: 1.11
+Libs: -L${libdir} -ltag
+Cflags: -I${includedir}/taglib

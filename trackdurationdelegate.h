@@ -2,7 +2,6 @@
 #define TRACKDURATIONDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include <QPainter>
 
 class TrackDurationDelegate : public QStyledItemDelegate
 {
