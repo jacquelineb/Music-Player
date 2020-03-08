@@ -1,11 +1,14 @@
 #include "playercontrols.h"
 #include "ui_playercontrols.h"
 
+#include <QStyle>
+
 PlayerControls::PlayerControls(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::PlayerControls)
 {
     ui->setupUi(this);
+    setButtonsIcons();
     restoreVolumeSliderState();
     setConnections();
 }
@@ -17,14 +20,18 @@ PlayerControls::~PlayerControls()
 }
 
 
+void PlayerControls::setButtonsIcons()
+{
+    ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    ui->prevButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
+    ui->nextButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+}
+
+
 void PlayerControls::restoreVolumeSliderState()
 {
-    // rename this to restoreControlSettings or initializeControlSettings
-    // initialize PlayerControls::state in here instead of directly in constructor
-    //ui->volumeSlider->setValue(settings.value("PlayerControls/volumeSlider", ui->volumeSlider->maximum()).toInt());
-
     const int DEFAULT_VOLUME = 100;
-    int volume = settings.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
+    int volume = session.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
     ui->volumeSlider->setValue(volume);
 }
 
@@ -58,10 +65,13 @@ void PlayerControls::updatePlaybackState(QMediaPlayer::State mediaState)
 {
     if (mediaState == QMediaPlayer::State::PlayingState)
     {
-        ui->playOrPauseButton->setText("Pause");
+        //ui->playOrPauseButton->setText("Pause");
+        ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
+
     }
     else
     {
-        ui->playOrPauseButton->setText("Play");
+        //ui->playOrPauseButton->setText("Play");
+        ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     }
 }

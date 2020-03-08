@@ -169,6 +169,9 @@ QTreeView {
       <property name="frameShadow">
        <enum>QFrame::Plain</enum>
       </property>
+      <property name="autoScroll">
+       <bool>false</bool>
+      </property>
       <property name="editTriggers">
        <set>QAbstractItemView::SelectedClicked</set>
       </property>

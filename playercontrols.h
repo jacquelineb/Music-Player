@@ -20,7 +20,8 @@ public:
 
 private:
     Ui::PlayerControls *ui;
-    QSettings settings{"session.ini", QSettings::Format::IniFormat};
+    QSettings session{"session.ini", QSettings::Format::IniFormat};
+    void setButtonsIcons();
     void restoreVolumeSliderState();
     void setConnections();
 

@@ -32,8 +32,6 @@ bool initializeTrackTable()
 bool initializeMediaDb()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    //db.setDatabaseName("Q:\\Documents\\testdb\\db.sqlite"); // just testing for now.
-    //qDebug() << QCoreApplication::applicationDirPath();
     db.setDatabaseName(QCoreApplication::applicationDirPath() + "/mediadb.sqlite");
     if (!db.open())
     {

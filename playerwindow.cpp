@@ -5,6 +5,7 @@
 #include <taglib/fileref.h>
 
 #include <QFileDialog>
+#include <QMessageBox> //
 #include <QSqlError>
 #include <QSqlRecord>
 
@@ -173,6 +174,10 @@ void PlayerWindow::onAddToLibraryActionTriggered()
     if (!fileRef.isNull())
     {
         QString title = fileRef.tag()->title().toCString(true);
+        if (title == "")
+        {
+            title = QFileInfo(filepath).completeBaseName();
+        }
         QString artist = fileRef.tag()->artist().toCString(true);
         QString album = fileRef.tag()->album().toCString(true);
         unsigned int trackNum = fileRef.tag()->track();
@@ -233,8 +238,6 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
 {
     if (status == QMediaPlayer::LoadedMedia)
     {
-        //qDebug() << mediaPlayer->isAudioAvailable();
-        //qDebug() << mediaPlayer->isVideoAvailable();
         mediaPlayer->play();
     }
     else if (status == QMediaPlayer::EndOfMedia)
@@ -246,6 +249,18 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
         qDebug() << "Line 174: " << status;
         // Notify user that the media was invalid and could not be played. Give them option to remove song.
         // An example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(nullptr, "Invalid media",
+                                      "Invalid media. The media file could not be played. Remove from library?");
+        if (reply == QMessageBox::Yes)
+        {
+           qDebug() << "Delete entry from library";
+        }
+        else
+        {
+           qDebug() << "Just keep file in library";
+        }
+        // stop media player
     }
     else
     {

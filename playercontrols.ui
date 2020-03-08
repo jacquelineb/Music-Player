@@ -87,7 +87,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="text">
-        <string>prev</string>
+        <string/>
        </property>
        <property name="flat">
         <bool>false</bool>
@@ -128,7 +128,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="text">
-        <string>play</string>
+        <string/>
        </property>
       </widget>
      </item>
@@ -166,7 +166,7 @@
         <enum>Qt::NoFocus</enum>
        </property>
        <property name="text">
-        <string>next</string>
+        <string/>
        </property>
       </widget>
      </item>

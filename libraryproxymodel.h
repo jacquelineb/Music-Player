@@ -9,7 +9,7 @@ class LibraryProxyModel : public QSortFilterProxyModel
     Q_OBJECT
 
 public:
-    LibraryProxyModel(QObject *parent = nullptr);
+    explicit LibraryProxyModel(QObject *parent = nullptr);
 
     void setTrackIdColumn(int columnIndex) { trackIdColumn = columnIndex; }
     void setTitleColumn(int columnIndex) { titleColumn = columnIndex; }
