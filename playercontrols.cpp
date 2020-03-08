@@ -10,10 +10,12 @@ PlayerControls::PlayerControls(QWidget *parent) :
     setConnections();
 }
 
+
 PlayerControls::~PlayerControls()
 {
     delete ui;
 }
+
 
 void PlayerControls::restoreVolumeSliderState()
 {
@@ -25,6 +27,7 @@ void PlayerControls::restoreVolumeSliderState()
     int volume = settings.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
     ui->volumeSlider->setValue(volume);
 }
+
 
 void PlayerControls::setConnections()
 {
@@ -43,6 +46,7 @@ void PlayerControls::updateProgressSlider(int position)
         ui->progressSlider->setValue(position);
     }
 }
+
 
 void PlayerControls::setupProgressSlider(int mediaDurationInMillisec)
 {

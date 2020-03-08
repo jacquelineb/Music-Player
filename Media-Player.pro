@@ -25,14 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS TAGLIB_STATIC
 CONFIG += c++11
 
 SOURCES += \
-    librarymodel.cpp \
+    libraryproxymodel.cpp \
     main.cpp \
     playercontrols.cpp \
     playerwindow.cpp \
     trackdurationdelegate.cpp
 
 HEADERS += \
-    librarymodel.h \
+    libraryproxymodel.h \
     playercontrols.h \
     playerwindow.h \
     trackdurationdelegate.h

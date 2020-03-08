@@ -1,11 +1,12 @@
-#include "librarymodel.h"
+#include "libraryproxymodel.h"
 
 
-LibraryModel::LibraryModel(QObject *parent) : QSortFilterProxyModel(parent)
+LibraryProxyModel::LibraryProxyModel(QObject *parent) : QSortFilterProxyModel(parent)
 {
 }
 
-Qt::ItemFlags LibraryModel::flags(const QModelIndex &index) const
+
+Qt::ItemFlags LibraryProxyModel::flags(const QModelIndex &index) const
 {
 /* Make trackId, duration, and location columns read-only. */
     Qt::ItemFlags flags = QAbstractProxyModel::flags(index);
@@ -16,7 +17,8 @@ Qt::ItemFlags LibraryModel::flags(const QModelIndex &index) const
     return flags;
 }
 
-bool LibraryModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
+
+bool LibraryProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     const int sortingColumn = left.column();
     if (sortingColumn == artistColumn)
@@ -34,7 +36,8 @@ bool LibraryModel::lessThan(const QModelIndex &left, const QModelIndex &right) c
     return leftData < rightData;
 }
 
-bool LibraryModel::multiColumnLessThan(const QModelIndex &left, const QModelIndex &right, QList<int> columns) const
+
+bool LibraryProxyModel::multiColumnLessThan(const QModelIndex &left, const QModelIndex &right, QList<int> columns) const
 {
 /* Called by lessThan(). Uses the columns listed in @columns to determine if the value of the item referred to by the
  * given index @left is less than the value of the item referred to by the given index @right.

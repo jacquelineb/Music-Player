@@ -4,12 +4,12 @@
 #include <QSortFilterProxyModel>
 
 
-class LibraryModel : public QSortFilterProxyModel
+class LibraryProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
-    LibraryModel(QObject *parent = nullptr);
+    LibraryProxyModel(QObject *parent = nullptr);
 
     void setTrackIdColumn(int columnIndex) { trackIdColumn = columnIndex; }
     void setTitleColumn(int columnIndex) { titleColumn = columnIndex; }
@@ -32,7 +32,6 @@ public:
     int getLocationColumn() const { return locationColumn; }
 
 protected:
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
@@ -46,6 +45,7 @@ private:
     int durationColumn;
     int locationColumn;
     bool multiColumnLessThan(const QModelIndex &left, const QModelIndex &right, QList<int> columnIndices) const;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
 };
 
 #endif // LIBRARYMODEL_H

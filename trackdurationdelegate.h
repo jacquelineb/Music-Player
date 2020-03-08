@@ -8,7 +8,7 @@ class TrackDurationDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    TrackDurationDelegate();
+    TrackDurationDelegate(QObject *parent = nullptr);
     QString displayText(const QVariant &value, const QLocale &locale) const override;
 };
 

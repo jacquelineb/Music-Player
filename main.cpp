@@ -28,6 +28,7 @@ bool initializeTrackTable()
     return true;
 }
 
+
 bool initializeMediaDb()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -49,6 +50,7 @@ bool initializeMediaDb()
 
     return true;
 }
+
 
 int main(int argc, char *argv[])
 {

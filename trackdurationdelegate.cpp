@@ -3,9 +3,10 @@
 #include <QTime>
 
 
-TrackDurationDelegate::TrackDurationDelegate()
+TrackDurationDelegate::TrackDurationDelegate(QObject *parent) : QStyledItemDelegate(parent)
 {
 }
+
 
 QString TrackDurationDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {

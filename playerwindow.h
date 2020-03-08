@@ -1,7 +1,7 @@
 #ifndef PLAYERWINDOW_H
 #define PLAYERWINDOW_H
 
-#include "librarymodel.h"
+#include "libraryproxymodel.h"
 
 #include <QCloseEvent>
 #include <QMainWindow>
@@ -24,15 +24,15 @@ public:
 
 private:
     Ui::PlayerWindow *ui;
-    QSettings settings{"session.ini", QSettings::Format::IniFormat};
+    QSettings session{"session.ini", QSettings::Format::IniFormat};
     QMediaPlayer *mediaPlayer = nullptr;
     QSqlTableModel *librarySourceModel = nullptr;
-    LibraryModel *libraryProxyModel = nullptr;
+    LibraryProxyModel *libraryProxyModel = nullptr;
     QModelIndex srcIndexOfCurrMedia;
 
     void initializeMediaPlayer();
     void initializeLibraryModels();
-    void initializeLibraryTreeView();
+    void initializeLibraryView();
     void setUpConnections();
     void restoreWindowState();
     void restoreMediaPlayerVolume();
@@ -42,7 +42,6 @@ private:
     void saveWindowState();
     void saveMediaPlayerVolume();
     void saveLibraryViewState();
-
     void insertToTrackTable(const QString &title,
                             const QString &artist,
                             const QString &album,
@@ -61,7 +60,6 @@ private slots:
     void setPreviousMediaForPlayback();
     void updateCurrTrackLabel();
     void updatePlaylistTreeViewSelection();
-
 };
 
 #endif // PLAYERWINDOW_H

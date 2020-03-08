@@ -1,6 +1,5 @@
 #include "playerwindow.h"
 #include "ui_playerwindow.h"
-
 #include "trackdurationdelegate.h"
 
 #include <taglib/fileref.h>
@@ -18,7 +17,7 @@ PlayerWindow::PlayerWindow(QWidget *parent) :
     restoreWindowState();
     initializeMediaPlayer();
     initializeLibraryModels();
-    initializeLibraryTreeView();
+    initializeLibraryView();
     setUpConnections();
 }
 
@@ -29,16 +28,31 @@ PlayerWindow::~PlayerWindow()
 }
 
 
+void PlayerWindow::restoreWindowState()
+{
+    move(session.value("PlayerWindow/position", pos()).toPoint());
+    if (session.value("PlayerWindow/isMaximized", true).toBool())
+    {
+        setWindowState(Qt::WindowState::WindowMaximized);
+    }
+    else
+    {
+        resize(session.value("PlayerWindow/size", size()).toSize());
+    }
+}
+
+
 void PlayerWindow::initializeMediaPlayer()
 {
     mediaPlayer = new QMediaPlayer(this);
     restoreMediaPlayerVolume();
 }
 
+
 void PlayerWindow::restoreMediaPlayerVolume()
 {
     const int DEFAULT_VOLUME = 100; // This should match DEFAULT_VOLUME in PlayerControls::restoreVolumeSliderState()
-    int volume = settings.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
+    int volume = session.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
     mediaPlayer->setVolume(volume);
 }
 
@@ -57,7 +71,6 @@ void PlayerWindow::initializeLibraryModels()
     const int GENRE_COLUMN = 6;
     const int DURATION_COLUMN = 7;
     const int LOCATION_COLUMN = 8;
-
     librarySourceModel->setHeaderData(TRACK_ID_COLUMN, Qt::Horizontal, tr("Track ID"));
     librarySourceModel->setHeaderData(TITLE_COLUMN, Qt::Horizontal, tr("Title"));
     librarySourceModel->setHeaderData(ARTIST_COLUMN, Qt::Horizontal, tr("Artist"));
@@ -69,7 +82,7 @@ void PlayerWindow::initializeLibraryModels()
     librarySourceModel->setHeaderData(LOCATION_COLUMN, Qt::Horizontal, tr("Location"));
     librarySourceModel->select();
 
-    libraryProxyModel = new LibraryModel(this);
+    libraryProxyModel = new LibraryProxyModel(this);
     libraryProxyModel->setSourceModel(librarySourceModel);
     libraryProxyModel->setTrackIdColumn(TRACK_ID_COLUMN);
     libraryProxyModel->setTitleColumn(TITLE_COLUMN);
@@ -84,10 +97,10 @@ void PlayerWindow::initializeLibraryModels()
 }
 
 
-void PlayerWindow::initializeLibraryTreeView()
+void PlayerWindow::initializeLibraryView()
 {
     ui->libraryView->setModel(libraryProxyModel);
-    ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate);
+    ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate(ui->libraryView));
     ui->libraryView->setCurrentIndex(QModelIndex());
     restoreLibraryViewState();
 }
@@ -97,15 +110,15 @@ void PlayerWindow::restoreLibraryViewState()
 {
     // Restore the column widths
     const int DEFAULT_COLUMN_WIDTH = ui->libraryView->header()->defaultSectionSize();
-    const int trackIdColumnWidth = settings.value("LibraryView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int titleColumnWidth = settings.value("LibraryView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int artistColumnWidth = settings.value("LibraryView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int albumColumnWidth = settings.value("LibraryView/albumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int trackNumColumnWidth = settings.value("LibraryView/trackNumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int yearColumnWidth = settings.value("LibraryView/yearColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int genreColumnWidth = settings.value("LibraryView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int durationColumnWidth = settings.value("LibraryView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
-    const int locationColumnWidth = settings.value("LibraryView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int trackIdColumnWidth = session.value("LibraryView/trackIdColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int titleColumnWidth = session.value("LibraryView/titleColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int artistColumnWidth = session.value("LibraryView/artistColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int albumColumnWidth = session.value("LibraryView/albumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int trackNumColumnWidth = session.value("LibraryView/trackNumColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int yearColumnWidth = session.value("LibraryView/yearColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int genreColumnWidth = session.value("LibraryView/genreColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int durationColumnWidth = session.value("LibraryView/durationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
+    const int locationColumnWidth = session.value("LibraryView/locationColumnWidth", DEFAULT_COLUMN_WIDTH).toInt();
     ui->libraryView->setColumnWidth(libraryProxyModel->getTrackIdColumn(), trackIdColumnWidth);
     ui->libraryView->setColumnWidth(libraryProxyModel->getTitleColumn(), titleColumnWidth);
     ui->libraryView->setColumnWidth(libraryProxyModel->getArtistColumn(), artistColumnWidth);
@@ -118,7 +131,7 @@ void PlayerWindow::restoreLibraryViewState()
 
     // Restore which column was last sorted
     Qt::SortOrder sortOrder;
-    if (settings.value("LibraryView/sortOrder").toInt() == 0)
+    if (session.value("LibraryView/sortOrder").toInt() == 0)
     {
         sortOrder = Qt::SortOrder::AscendingOrder;
     }
@@ -126,7 +139,7 @@ void PlayerWindow::restoreLibraryViewState()
     {
         sortOrder = Qt::SortOrder::DescendingOrder;
     }
-    const int sortColumn = settings.value("LibraryView/sortByColumn").toInt();
+    const int sortColumn = session.value("LibraryView/sortByColumn").toInt();
     ui->libraryView->sortByColumn(sortColumn, sortOrder);
 }
 
@@ -152,6 +165,51 @@ void PlayerWindow::setUpConnections()
 }
 
 
+void PlayerWindow::onAddToLibraryActionTriggered()
+{
+    QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
+
+    TagLib::FileRef fileRef(filepath.toStdWString().c_str());
+    if (!fileRef.isNull())
+    {
+        QString title = fileRef.tag()->title().toCString(true);
+        QString artist = fileRef.tag()->artist().toCString(true);
+        QString album = fileRef.tag()->album().toCString(true);
+        unsigned int trackNum = fileRef.tag()->track();
+        unsigned int year = fileRef.tag()->year();
+        QString genre = fileRef.tag()->genre().toCString(true);
+        int duration = fileRef.audioProperties()->lengthInMilliseconds();
+
+        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filepath);
+    }
+}
+
+
+void PlayerWindow::insertToTrackTable(const QString &title,
+                                      const QString &artist,
+                                      const QString &album,
+                                      unsigned int trackNum,
+                                      unsigned int year,
+                                      const QString &genre,
+                                      int duration,
+                                      const QString &location)
+{
+    QSqlRecord trackRecord = librarySourceModel->record();
+    trackRecord.setGenerated("id", false);
+    trackRecord.setValue("title", title);
+    trackRecord.setValue("artist", artist);
+    trackRecord.setValue("album", album);
+    (trackNum > 0) ? trackRecord.setValue("track_num", trackNum) : trackRecord.setNull("track_num");
+    (year > 0) ? trackRecord.setValue("year", year) : trackRecord.setNull("year");
+    trackRecord.setValue("genre", genre);
+    trackRecord.setValue("duration", duration);
+    trackRecord.setValue("location", location);
+
+    qDebug() << librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
+    qDebug() << librarySourceModel->lastError();
+}
+
+
 void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
 {
     if (selectedProxyIndex.isValid())
@@ -169,7 +227,6 @@ void PlayerWindow::setMediaForPlayback(const QModelIndex &selectedProxyIndex)
         mediaPlayer->setMedia(QMediaContent());
     }
 }
-
 
 
 void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
@@ -289,65 +346,6 @@ void PlayerWindow::onPlayOrPauseSignal()
 }
 
 
-void PlayerWindow::onAddToLibraryActionTriggered()
-{
-    QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
-
-    TagLib::FileRef fileRef(filepath.toStdWString().c_str());
-    if (!fileRef.isNull())
-    {
-        QString title = fileRef.tag()->title().toCString(true);
-        QString artist = fileRef.tag()->artist().toCString(true);
-        QString album = fileRef.tag()->album().toCString(true);
-        unsigned int trackNum = fileRef.tag()->track();
-        unsigned int year = fileRef.tag()->year();
-        QString genre = fileRef.tag()->genre().toCString(true);
-        int duration = fileRef.audioProperties()->lengthInMilliseconds();
-
-        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filepath);
-    }
-}
-
-
-void PlayerWindow::insertToTrackTable(const QString &title,
-                                      const QString &artist,
-                                      const QString &album,
-                                      unsigned int trackNum,
-                                      unsigned int year,
-                                      const QString &genre,
-                                      int duration,
-                                      const QString &location)
-{
-    QSqlRecord trackRecord = librarySourceModel->record();
-    trackRecord.setGenerated("id", false);
-    trackRecord.setValue("title", title);
-    trackRecord.setValue("artist", artist);
-    trackRecord.setValue("album", album);
-    (trackNum > 0) ? trackRecord.setValue("track_num", trackNum) : trackRecord.setNull("track_num");
-    (year > 0) ? trackRecord.setValue("year", year) : trackRecord.setNull("year");
-    trackRecord.setValue("genre", genre);
-    trackRecord.setValue("duration", duration);
-    trackRecord.setValue("location", location);
-
-    qDebug() << librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
-    qDebug() << librarySourceModel->lastError();
-}
-
-
-void PlayerWindow::restoreWindowState()
-{
-    move(settings.value("PlayerWindow/position", pos()).toPoint());
-    if (settings.value("PlayerWindow/isMaximized", true).toBool())
-    {
-        setWindowState(Qt::WindowState::WindowMaximized);
-    }
-    else
-    {
-        resize(settings.value("PlayerWindow/size", size()).toSize());
-    }
-}
-
-
 void PlayerWindow::closeEvent(QCloseEvent *event)
 {
     saveSessionState();
@@ -365,15 +363,15 @@ void PlayerWindow::saveSessionState()
 
 void PlayerWindow::saveWindowState()
 {
-    settings.setValue("PlayerWindow/position", pos());
-    settings.setValue("PlayerWindow/isMaximized", isMaximized());
-    settings.setValue("PlayerWindow/size", size());
+    session.setValue("PlayerWindow/position", pos());
+    session.setValue("PlayerWindow/isMaximized", isMaximized());
+    session.setValue("PlayerWindow/size", size());
 }
 
 
 void PlayerWindow::saveMediaPlayerVolume()
 {
-    settings.setValue("MediaPlayer/volume", mediaPlayer->volume());
+    session.setValue("MediaPlayer/volume", mediaPlayer->volume());
 }
 
 
@@ -388,18 +386,18 @@ void PlayerWindow::saveLibraryViewState()
     const int genreColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getGenreColumn());
     const int durationColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getDurationColumn());
     const int locationColumnWidth = ui->libraryView->columnWidth(libraryProxyModel->getLocationColumn());
-    settings.setValue("LibraryView/trackIdColumnWidth", trackIdColumnWidth);
-    settings.setValue("LibraryView/titleColumnWidth", titleColumnWidth);
-    settings.setValue("LibraryView/artistColumnWidth", artistColumnWidthwidth);
-    settings.setValue("LibraryView/albumColumnWidth", albumColumnWidth);
-    settings.setValue("LibraryView/trackNumColumnWidth", trackNumColumnWidth);
-    settings.setValue("LibraryView/yearColumnWidth", yearColumnWidth);
-    settings.setValue("LibraryView/genreColumnWidth", genreColumnWidth);
-    settings.setValue("LibraryView/durationColumnWidth", durationColumnWidth);
-    settings.setValue("LibraryView/locationColumnWidth", locationColumnWidth);
+    session.setValue("LibraryView/trackIdColumnWidth", trackIdColumnWidth);
+    session.setValue("LibraryView/titleColumnWidth", titleColumnWidth);
+    session.setValue("LibraryView/artistColumnWidth", artistColumnWidthwidth);
+    session.setValue("LibraryView/albumColumnWidth", albumColumnWidth);
+    session.setValue("LibraryView/trackNumColumnWidth", trackNumColumnWidth);
+    session.setValue("LibraryView/yearColumnWidth", yearColumnWidth);
+    session.setValue("LibraryView/genreColumnWidth", genreColumnWidth);
+    session.setValue("LibraryView/durationColumnWidth", durationColumnWidth);
+    session.setValue("LibraryView/locationColumnWidth", locationColumnWidth);
 
     const int sortedColumn = ui->libraryView->header()->sortIndicatorSection();
     const int sortOrder = ui->libraryView->header()->sortIndicatorOrder();
-    settings.setValue("LibraryView/sortByColumn", sortedColumn);
-    settings.setValue("LibraryView/sortOrder", sortOrder);
+    session.setValue("LibraryView/sortByColumn", sortedColumn);
+    session.setValue("LibraryView/sortOrder", sortOrder);
 }
