@@ -10,6 +10,8 @@ TrackDurationDelegate::TrackDurationDelegate(QObject *parent) : QStyledItemDeleg
 
 QString TrackDurationDelegate::displayText(const QVariant &value, const QLocale &locale) const
 {
+    Q_UNUSED(locale)
+
     int durationInMillisec = value.toInt();
     int remainingMillisec = durationInMillisec;
     int hours = durationInMillisec / 1000 / 60 / 60;
@@ -19,7 +21,6 @@ QString TrackDurationDelegate::displayText(const QVariant &value, const QLocale 
     int seconds = remainingMillisec / 1000;
     remainingMillisec = remainingMillisec - (seconds * 1000);
 
-    QTime time(hours, minutes, seconds);
     QString format;
     if (hours)
     {
@@ -29,6 +30,7 @@ QString TrackDurationDelegate::displayText(const QVariant &value, const QLocale 
     {
         format = "m:ss";
     }
-    QString timeString = time.toString(format);
-    return timeString;
+
+    QTime time(hours, minutes, seconds);
+    return time.toString(format);
 }

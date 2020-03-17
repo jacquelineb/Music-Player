@@ -20,6 +20,7 @@ QString TagLibFileRefWrapper::getTitle() const
     {
         title = QFileInfo(filePath).completeBaseName();
     }
+
     return title;
 }
 
@@ -32,7 +33,7 @@ QString TagLibFileRefWrapper::getArtist() const
 
 QString TagLibFileRefWrapper::getAlbum() const
 {
-   return fileRef.tag()->album().toCString(true);
+    return fileRef.tag()->album().toCString(true);
 }
 
 
@@ -44,7 +45,6 @@ unsigned int TagLibFileRefWrapper::getTrackNum() const
 
 unsigned int TagLibFileRefWrapper::getYear() const
 {
-
     return fileRef.tag()->year();
 }
 

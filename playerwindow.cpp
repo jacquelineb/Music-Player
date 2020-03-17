@@ -307,15 +307,15 @@ void PlayerWindow::onPlayOrPauseSignal()
     else // StoppedState
     {
         /* If pressing play button from a stopped state,
-         * start playback from the first highlighted song if there is one.
-         * Otherwise just start playback from the beginning of playlist.
+         * start playback from the highlighted song, if there is one.
+         * Otherwise just start playback from the beginning of library.
         */
         QModelIndex selectedIndex = ui->libraryView->currentIndex();
         if (selectedIndex.isValid())
         {
             setMediaForPlayback(selectedIndex);
         }
-        else // Thinking of just removing this branch
+        else
         {
             setMediaForPlayback(libraryProxyModel->index(0, 0, QModelIndex()));
         }

@@ -25,6 +25,7 @@ bool initializeTrackTable()
     {
         return false;
     }
+
     return true;
 }
 

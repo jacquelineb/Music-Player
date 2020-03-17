@@ -5,12 +5,12 @@
 
 #include <QString>
 
-/* Wrapper class for TagLib::FileRef to get the metadata
- * of a file located at the @filepath passed to constructor
-*/
 
 class TagLibFileRefWrapper
 {
+/* Wrapper class for TagLib::FileRef to get the metadata
+ * of a file located at the @filepath passed to constructor
+*/
 public:
     TagLibFileRefWrapper(QString filepath);
     bool fileRefIsNull() const;
