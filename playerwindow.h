@@ -60,8 +60,6 @@ private slots:
     void setPreviousMediaForPlayback();
     void updateCurrTrackLabel();
     void updateLibraryViewSelection();
-
-    void onMediaPlayerStateChanged(QMediaPlayer::State state); //
 };
 
 #endif // PLAYERWINDOW_H
