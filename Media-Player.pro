@@ -29,12 +29,14 @@ SOURCES += \
     main.cpp \
     playercontrols.cpp \
     playerwindow.cpp \
+    taglibfilerefwrapper.cpp \
     trackdurationdelegate.cpp
 
 HEADERS += \
     libraryproxymodel.h \
     playercontrols.h \
     playerwindow.h \
+    taglibfilerefwrapper.h \
     trackdurationdelegate.h
 
 FORMS += \

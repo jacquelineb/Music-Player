@@ -1,8 +1,7 @@
 #include "playerwindow.h"
 #include "ui_playerwindow.h"
 #include "trackdurationdelegate.h"
-
-#include <taglib/fileref.h>
+#include "taglibfilerefwrapper.h"
 
 #include <QFileDialog>
 #include <QMessageBox> //
@@ -152,8 +151,9 @@ void PlayerWindow::setUpConnections()
     connect(ui->libraryView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
-    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
-    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updatePlaylistTreeViewSelection);
+    connect(mediaPlayer, &QMediaPlayer::stateChanged, this, &PlayerWindow::onMediaPlayerStateChanged); //
+    //connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
+    connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateLibraryViewSelection);
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::updatePlaybackState);
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
@@ -165,25 +165,45 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
 
+void PlayerWindow::onMediaPlayerStateChanged(QMediaPlayer::State state)
+{
+    QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
+    if (state == QMediaPlayer::PlayingState || state == QMediaPlayer::PausedState)
+    {
+        QModelIndex trackTitleIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->getTitleColumn());
+        QString currTrack = libraryProxyModel->data(trackTitleIndex).toString();
+        QModelIndex trackArtistIndex = proxyIndexOfCurrMedia.siblingAtColumn(libraryProxyModel->getArtistColumn());
+        QString currArtist = libraryProxyModel->data(trackArtistIndex).toString();
+
+        QString currentlyPlayingText;
+        if (!currArtist.isEmpty())
+        {
+            currentlyPlayingText += currArtist + " - ";
+        }
+        currentlyPlayingText += currTrack;
+        ui->currentTrackLabel->setText(currentlyPlayingText);
+    }
+    else // Stopped State
+    {
+        ui->currentTrackLabel->clear();
+    }
+}
+
+
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
     QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
-
-    TagLib::FileRef fileRef(filepath.toStdWString().c_str());
-    if (!fileRef.isNull())
+    TagLibFileRefWrapper tagLibFileRefWrapper(filepath);
+    if (!tagLibFileRefWrapper.fileRefIsNull())
     {
-        QString title = fileRef.tag()->title().toCString(true);
-        if (title == "")
-        {
-            title = QFileInfo(filepath).completeBaseName();
-        }
-        QString artist = fileRef.tag()->artist().toCString(true);
-        QString album = fileRef.tag()->album().toCString(true);
-        unsigned int trackNum = fileRef.tag()->track();
-        unsigned int year = fileRef.tag()->year();
-        QString genre = fileRef.tag()->genre().toCString(true);
-        int duration = fileRef.audioProperties()->lengthInMilliseconds();
+        QString title = tagLibFileRefWrapper.getTitle();
+        QString artist = tagLibFileRefWrapper.getArtist();
+        QString album = tagLibFileRefWrapper.getAlbum();
+        unsigned int trackNum = tagLibFileRefWrapper.getTrackNum();
+        unsigned int year = tagLibFileRefWrapper.getYear();
+        QString genre = tagLibFileRefWrapper.getGenre();
+        int duration = tagLibFileRefWrapper.getDurationInMilliseconds();
 
         insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filepath);
     }
@@ -212,6 +232,13 @@ void PlayerWindow::insertToTrackTable(const QString &title,
 
     qDebug() << librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
     qDebug() << librarySourceModel->lastError();
+
+    /*
+    libraryProxyModel->insertRow(0);
+    libraryProxyModel->setData(libraryProxyModel->index(0, 1), title);
+    libraryProxyModel->setData(libraryProxyModel->index(0, 8), location);
+    */
+
 }
 
 
@@ -244,31 +271,6 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
     {
         setNextMediaForPlayback();
     }
-    else if (status == QMediaPlayer::InvalidMedia)
-    {
-        qDebug() << "Line 174: " << status;
-        // Notify user that the media was invalid and could not be played. Give them option to remove song.
-        // An example of when this status might occur is if a media file couldn't be located, eg., if I deleted an added song file from disk.
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(nullptr, "Invalid media",
-                                      "Invalid media. The media file could not be played. Remove from library?");
-        if (reply == QMessageBox::Yes)
-        {
-           qDebug() << "Delete entry from library";
-        }
-        else
-        {
-           qDebug() << "Just keep file in library";
-        }
-        // stop media player
-    }
-    else
-    {
-        qDebug() << "Line 179: " << status;
-    }
-
-    //qDebug() << "184: " << mediaPlayer->errorString();
-    //qDebug() << mediaPlayer->error();
 }
 
 
@@ -324,7 +326,7 @@ void PlayerWindow::updateCurrTrackLabel()
 }
 
 
-void PlayerWindow::updatePlaylistTreeViewSelection()
+void PlayerWindow::updateLibraryViewSelection()
 {
     // Automatically highlight the currently playing track in the playlist view.
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
