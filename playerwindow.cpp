@@ -5,6 +5,7 @@
 
 #include <QFileDialog>
 #include <QSqlRecord>
+#include <QTime>
 
 
 PlayerWindow::PlayerWindow(QWidget *parent) :
@@ -155,6 +156,8 @@ void PlayerWindow::setUpConnections()
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
 
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &PlayerWindow::updateTimeLabels);
+
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &PlayerWindow::onPlayOrPauseSignal);
@@ -162,6 +165,39 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
 
+
+QString formatDuration(int milliseconds)
+{
+    int remainingMillisec = milliseconds;
+    int hours = milliseconds / 1000 / 60 / 60;
+    remainingMillisec = milliseconds - (hours * 1000 * 60 * 60);
+    int minutes = remainingMillisec / 1000 / 60;
+    remainingMillisec = milliseconds - (minutes * 1000 * 60);
+    int seconds = remainingMillisec / 1000;
+    remainingMillisec = remainingMillisec - (seconds * 1000);
+
+    QString format;
+    if (hours)
+    {
+        format = "h:mm:ss";
+    }
+    else
+    {
+        format = "m:ss";
+    }
+
+    QTime time(hours, minutes, seconds);
+    return time.toString(format);
+}
+
+
+void PlayerWindow::updateTimeLabels(int position)
+{
+    QString strTime;
+    strTime = formatDuration(position);
+    ui->timePassed->setText(strTime);
+    ui->totalTime->setText(formatDuration(mediaPlayer->duration()));
+}
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
