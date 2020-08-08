@@ -25,33 +25,38 @@ DEFINES += QT_DEPRECATED_WARNINGS TAGLIB_STATIC
 CONFIG += c++11
 
 SOURCES += \
-    libraryproxymodel.cpp \
-    main.cpp \
-    playercontrols.cpp \
-    playerwindow.cpp \
-    taglibfilerefwrapper.cpp \
-    trackdurationdelegate.cpp
+    src/core/libraryproxymodel.cpp \
+    src/core/main.cpp \
+    src/core/playercontrols.cpp \
+    src/core/playerwindow.cpp \
+    src/core/taglibfilerefwrapper.cpp \
+    src/core/trackdurationdelegate.cpp
 
 HEADERS += \
-    libraryproxymodel.h \
-    playercontrols.h \
-    playerwindow.h \
-    taglibfilerefwrapper.h \
-    trackdurationdelegate.h
+    src/core/libraryproxymodel.h \
+    src/core/playercontrols.h \
+    src/core/playerwindow.h \
+    src/core/taglibfilerefwrapper.h \
+    src/core/trackdurationdelegate.h
 
 FORMS += \
-    playercontrols.ui \
-    playerwindow.ui
+    src/ui/playercontrols.ui \
+    src/ui/playerwindow.ui
+
+DESTDIR     = bin
+OBJECTS_DIR = build/obj
+UI_DIR      = build/uic
+MOC_DIR     = build/moc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-unix|win32: LIBS += -L$$PWD/3rdPartyLibs/taglib/lib/ -ltag
+unix|win32: LIBS += -L$$PWD/libs/taglib/lib/ -ltag
 
-INCLUDEPATH += $$PWD/3rdPartyLibs/taglib/include
-DEPENDPATH += $$PWD/3rdPartyLibs/taglib/include
+INCLUDEPATH += $$PWD/libs/taglib/include $$PWD/src/core
+DEPENDPATH += $$PWD/libs/taglib/include $$PWD/src/core
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/3rdPartyLibs/taglib/lib/tag.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/3rdPartyLibs/taglib/lib/libtag.a
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/libs/taglib/lib/tag.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/libs/taglib/lib/libtag.a
