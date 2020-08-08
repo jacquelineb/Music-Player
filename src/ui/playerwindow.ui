@@ -262,13 +262,7 @@ QTreeView {
     </property>
     <addaction name="actionAddToLibrary"/>
    </widget>
-   <widget class="QMenu" name="menuSettings">
-    <property name="title">
-     <string>Settings</string>
-    </property>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuSettings"/>
   </widget>
   <action name="actionAddToLibrary">
    <property name="text">
