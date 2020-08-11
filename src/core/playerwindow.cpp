@@ -5,6 +5,7 @@
 
 #include <QCloseEvent>
 #include <QFileDialog>
+#include <QMessageBox>
 #include <QSqlRecord>
 #include <QTime>
 
@@ -60,6 +61,7 @@ void PlayerWindow::restoreMediaPlayerVolume()
 void PlayerWindow::initializeLibraryModels()
 {
     librarySourceModel = new QSqlTableModel(this);
+    librarySourceModel->setEditStrategy(QSqlTableModel::OnFieldChange);
     librarySourceModel->setTable("Track"); // Track table from media database set up in main.cpp
 
     const int TRACK_ID_COLUMN = 0;
@@ -104,7 +106,9 @@ void PlayerWindow::initializeLibraryView()
 
     ui->libraryView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate(ui->libraryView));
+
     ui->libraryView->setCurrentIndex(QModelIndex());
+
     restoreLibraryViewState();
 }
 
@@ -173,9 +177,7 @@ void PlayerWindow::setUpConnections()
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
-    //QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
     QStringList filePaths = QFileDialog::getOpenFileNames(this, "Add file(s) to library");
-
     for (const QString &filePath : filePaths)
     {
         TagLibFileRefWrapper tagLibFileRefWrapper(filePath);
@@ -294,8 +296,14 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
     }
     else if (status == QMediaPlayer::InvalidMedia)
     {
-        //TODO: NOTIFY USER THE FILE IS INVALID. ASK THEM IF THEY WOULD LIKE TO DELETE THE FILE FROM LIBRARY.
-        qDebug() << "TODO: NOTIFY USER THE FILE IS INVALID. ASK THEM IF THEY WOULD LIKE TO DELETE THE FILE FROM LIBRARY.";
+        QMessageBox::StandardButton reply = QMessageBox::question(this,
+                                                                  "Invalid media.",
+                                                                  "Invalid media. Unable to play. Would you like to delete file from library?",
+                                                                  QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+            deleteFromLibrary();
+        }
     }
 }
 
