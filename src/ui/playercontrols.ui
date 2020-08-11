@@ -27,7 +27,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">
-    <widget class="QSlider" name="progressSlider">
+    <widget class="PlayerControlsSlider" name="progressSlider">
      <property name="minimumSize">
       <size>
        <width>520</width>
@@ -187,7 +187,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QSlider" name="volumeSlider">
+      <widget class="PlayerControlsSlider" name="volumeSlider">
        <property name="minimumSize">
         <size>
          <width>175</width>
@@ -215,6 +215,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlayerControlsSlider</class>
+   <extends>QSlider</extends>
+   <header>playercontrolsslider.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

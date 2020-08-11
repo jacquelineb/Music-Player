@@ -42,7 +42,7 @@ void PlayerControls::setConnections()
     connect(ui->prevButton, &QAbstractButton::clicked, this, &PlayerControls::prevClicked);
     connect(ui->nextButton, &QAbstractButton::clicked, this, &PlayerControls::nextClicked);
     connect(ui->volumeSlider, &QAbstractSlider::valueChanged, this, &PlayerControls::volumeChanged);
-    connect(ui->progressSlider, &QAbstractSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
+    connect(ui->progressSlider, &PlayerControlsSlider::sliderMoved, this, &PlayerControls::progressSliderMoved);
 }
 
 
@@ -52,6 +52,11 @@ void PlayerControls::updateProgressSlider(int position)
     {
         ui->progressSlider->setValue(position);
     }
+
+    /* If you allowed the progress slider to be updated while it was being held down, then the
+       song would keep trying to reset to the point where the slider is being held down,
+       therefore we need to check that the slider is not being held down.
+    */
 }
 
 

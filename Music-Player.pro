@@ -28,6 +28,7 @@ SOURCES += \
     src/core/libraryproxymodel.cpp \
     src/core/main.cpp \
     src/core/playercontrols.cpp \
+    src/core/playercontrolsslider.cpp \
     src/core/playerwindow.cpp \
     src/core/taglibfilerefwrapper.cpp \
     src/core/trackdurationdelegate.cpp
@@ -35,6 +36,7 @@ SOURCES += \
 HEADERS += \
     src/core/libraryproxymodel.h \
     src/core/playercontrols.h \
+    src/core/playercontrolsslider.h \
     src/core/playerwindow.h \
     src/core/taglibfilerefwrapper.h \
     src/core/trackdurationdelegate.h
