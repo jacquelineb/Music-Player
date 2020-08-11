@@ -60,8 +60,8 @@ private slots:
     void setPreviousMediaForPlayback();
     void updateCurrTrackLabel();
     void updateLibraryViewSelection();
-
-    void updateTimeLabels(int position);
+    void updateTotalTime(int duration);
+    void updateTimePassed(int position);
 };
 
 #endif // PLAYERWINDOW_H

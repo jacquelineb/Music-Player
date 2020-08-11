@@ -155,8 +155,8 @@ void PlayerWindow::setUpConnections()
     connect(mediaPlayer, &QMediaPlayer::stateChanged, ui->controls, &PlayerControls::updatePlaybackState);
     connect(mediaPlayer, &QMediaPlayer::durationChanged, ui->controls, &PlayerControls::setupProgressSlider);
     connect(mediaPlayer, &QMediaPlayer::positionChanged, ui->controls, &PlayerControls::updateProgressSlider);
-
-    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &PlayerWindow::updateTimeLabels);
+    connect(mediaPlayer, &QMediaPlayer::durationChanged, this, &PlayerWindow::updateTotalTime);
+    connect(mediaPlayer, &QMediaPlayer::positionChanged, this, &PlayerWindow::updateTimePassed);
 
     connect(ui->controls, &PlayerControls::progressSliderMoved, mediaPlayer, &QMediaPlayer::setPosition);
     connect(ui->controls, &PlayerControls::volumeChanged, mediaPlayer, &QMediaPlayer::setVolume);
@@ -166,38 +166,7 @@ void PlayerWindow::setUpConnections()
 }
 
 
-QString formatDuration(int milliseconds)
-{
-    int remainingMillisec = milliseconds;
-    int hours = milliseconds / 1000 / 60 / 60;
-    remainingMillisec = milliseconds - (hours * 1000 * 60 * 60);
-    int minutes = remainingMillisec / 1000 / 60;
-    remainingMillisec = milliseconds - (minutes * 1000 * 60);
-    int seconds = remainingMillisec / 1000;
-    remainingMillisec = remainingMillisec - (seconds * 1000);
 
-    QString format;
-    if (hours)
-    {
-        format = "h:mm:ss";
-    }
-    else
-    {
-        format = "m:ss";
-    }
-
-    QTime time(hours, minutes, seconds);
-    return time.toString(format);
-}
-
-
-void PlayerWindow::updateTimeLabels(int position)
-{
-    QString strTime;
-    strTime = formatDuration(position);
-    ui->timePassed->setText(strTime);
-    ui->totalTime->setText(formatDuration(mediaPlayer->duration()));
-}
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {
@@ -271,6 +240,11 @@ void PlayerWindow::onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status)
     {
         setNextMediaForPlayback();
     }
+    else if (status == QMediaPlayer::InvalidMedia)
+    {
+        //TODO: NOTIFY USER THE FILE IS INVALID. ASK THEM IF THEY WOULD LIKE TO DELETE THE FILE FROM LIBRARY.
+        qDebug() << "TODO: NOTIFY USER THE FILE IS INVALID. ASK THEM IF THEY WOULD LIKE TO DELETE THE FILE FROM LIBRARY.";
+    }
 }
 
 
@@ -327,6 +301,60 @@ void PlayerWindow::updateLibraryViewSelection()
     // Automatically highlight the currently playing track in the playlist view.
     QModelIndex proxyIndexOfCurrMedia = libraryProxyModel->mapFromSource(srcIndexOfCurrMedia);
     ui->libraryView->setCurrentIndex(proxyIndexOfCurrMedia);
+}
+
+
+QString formatDuration(int milliseconds)
+{
+    int remainingMillisec = milliseconds;
+    int hours = milliseconds / 1000 / 60 / 60;
+    remainingMillisec = milliseconds - (hours * 1000 * 60 * 60);
+    int minutes = remainingMillisec / 1000 / 60;
+    remainingMillisec = milliseconds - (minutes * 1000 * 60);
+    int seconds = remainingMillisec / 1000;
+    remainingMillisec = remainingMillisec - (seconds * 1000);
+
+    QString format;
+    if (hours)
+    {
+        format = "h:mm:ss";
+    }
+    else
+    {
+        format = "m:ss";
+    }
+
+    QTime time(hours, minutes, seconds);
+    return time.toString(format);
+}
+
+
+void PlayerWindow::updateTotalTime(int duration)
+{
+    if (duration)
+    {
+        QString strTime;
+        ui->totalTime->setText(formatDuration(duration));
+    }
+    else
+    {
+        ui->totalTime->setText("--:--");
+    }
+}
+
+
+void PlayerWindow::updateTimePassed(int position)
+{
+    if (mediaPlayer->duration())
+    {
+        QString strTime;
+        strTime = formatDuration(position);
+        ui->timePassed->setText(strTime);
+    }
+    else
+    {
+        ui->timePassed->setText("--:--");
+    }
 }
 
 
