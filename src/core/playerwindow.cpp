@@ -3,6 +3,7 @@
 #include "trackdurationdelegate.h"
 #include "taglibfilerefwrapper.h"
 
+#include <QCloseEvent>
 #include <QFileDialog>
 #include <QSqlRecord>
 #include <QTime>
@@ -99,6 +100,9 @@ void PlayerWindow::initializeLibraryModels()
 void PlayerWindow::initializeLibraryView()
 {
     ui->libraryView->setModel(libraryProxyModel);
+    ui->libraryView->hideColumn(libraryProxyModel->getTrackIdColumn());
+
+    ui->libraryView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate(ui->libraryView));
     ui->libraryView->setCurrentIndex(QModelIndex());
     restoreLibraryViewState();
@@ -148,6 +152,7 @@ void PlayerWindow::setUpConnections()
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
 
     connect(ui->libraryView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
+    connect(ui->libraryView, &QTreeView::customContextMenuRequested, this, &PlayerWindow::customContextMenu);
 
     connect(mediaPlayer, &QMediaPlayer::mediaStatusChanged, this, &PlayerWindow::onMediaPlayerStatusChanged);
     connect(mediaPlayer, &QMediaPlayer::currentMediaChanged, this, &PlayerWindow::updateCurrTrackLabel);
@@ -165,8 +170,47 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
 
+void PlayerWindow::deleteFromLibrary()
+{
+    QModelIndex indexOfFileToDelete = libraryProxyModel->mapToSource(ui->libraryView->currentIndex());
+    librarySourceModel->removeRow(indexOfFileToDelete.row());
+    librarySourceModel->select();
 
+    /* When deleting a file, if there's a media loaded in the mediaPlayer there are two cases in which you will
+     * need to adjust its row index (srcIndexOfCurrMedia.row()) in order to keep it pointing to the correct media.
+     *
+     * Case I: Deleting the currently playing song. In this case you will need to stop the song and invalidate srcIndexOfCurrMedia.
+     *
+     * Case II: You are deleting a song that is listed before the current media inside the librarySourceModel:
+     * E.g. if you have songs A, B, C respectively in librarySourceModel, where C is the current media (srcIndexOfCurrMedia.row() is 3)
+     * and A is the file you want to delete. After deleting A, the row index of C is now actually 2.
+    */
+    if (srcIndexOfCurrMedia.isValid())
+    {
+        if (srcIndexOfCurrMedia.row() == indexOfFileToDelete.row())
+        {
+            srcIndexOfCurrMedia = QModelIndex();
+            mediaPlayer->setMedia(QMediaContent());
 
+        }
+        else if (indexOfFileToDelete.row() < srcIndexOfCurrMedia.row())
+        {
+            srcIndexOfCurrMedia = srcIndexOfCurrMedia.siblingAtRow(srcIndexOfCurrMedia.row() - 1);
+        }
+    }
+}
+
+void PlayerWindow::customContextMenu(const QPoint &point)
+{
+    QMenu menu;
+    menu.addAction("Delete", this, &PlayerWindow::deleteFromLibrary);
+
+    QModelIndex index = ui->libraryView->indexAt(point);
+    if (index.isValid())
+    {
+        menu.exec(ui->libraryView->viewport()->mapToGlobal(point));
+    }
+}
 
 void PlayerWindow::onAddToLibraryActionTriggered()
 {

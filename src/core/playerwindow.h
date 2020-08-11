@@ -3,7 +3,6 @@
 
 #include "libraryproxymodel.h"
 
-#include <QCloseEvent>
 #include <QMainWindow>
 #include <QMediaPlayer>
 #include <QSettings>
@@ -62,6 +61,8 @@ private slots:
     void updateLibraryViewSelection();
     void updateTotalTime(int duration);
     void updateTimePassed(int position);
+    void customContextMenu(const QPoint &point);
+    void deleteFromLibrary();
 };
 
 #endif // PLAYERWINDOW_H

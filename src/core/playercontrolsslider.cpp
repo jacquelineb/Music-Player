@@ -1,9 +1,7 @@
 #include "playercontrolsslider.h"
 
-#include <QMouseEvent> // should this be here or in .h file?
-#include <QDebug>
+#include <QMouseEvent>
 #include <QStyleOption>
-#include <QStyle>
 
 PlayerControlsSlider::PlayerControlsSlider(QWidget *parent) : QSlider(parent)
 {
@@ -12,8 +10,8 @@ PlayerControlsSlider::PlayerControlsSlider(QWidget *parent) : QSlider(parent)
 
 void PlayerControlsSlider::mousePressEvent(QMouseEvent *event)
 {
-    /*  Move the slider handle directly to position clicked on slider.
-        https://stackoverflow.com/questions/11132597/qslider-mouse-direct-jump
+    /* Move the slider handle directly to position clicked on slider.
+     * https://stackoverflow.com/questions/11132597/qslider-mouse-direct-jump
     */
     if (maximum() == minimum())
     {
