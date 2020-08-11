@@ -170,6 +170,55 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
 }
 
+
+void PlayerWindow::onAddToLibraryActionTriggered()
+{
+    //QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
+    QStringList filePaths = QFileDialog::getOpenFileNames(this, "Add file(s) to library");
+
+    for (const QString &filePath : filePaths)
+    {
+        TagLibFileRefWrapper tagLibFileRefWrapper(filePath);
+        if (!tagLibFileRefWrapper.fileRefIsNull())
+        {
+            QString title = tagLibFileRefWrapper.getTitle();
+            QString artist = tagLibFileRefWrapper.getArtist();
+            QString album = tagLibFileRefWrapper.getAlbum();
+            unsigned int trackNum = tagLibFileRefWrapper.getTrackNum();
+            unsigned int year = tagLibFileRefWrapper.getYear();
+            QString genre = tagLibFileRefWrapper.getGenre();
+            int duration = tagLibFileRefWrapper.getDurationInMilliseconds();
+
+            insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filePath);
+        }
+    }
+}
+
+
+void PlayerWindow::insertToTrackTable(const QString &title,
+                                      const QString &artist,
+                                      const QString &album,
+                                      unsigned int trackNum,
+                                      unsigned int year,
+                                      const QString &genre,
+                                      int duration,
+                                      const QString &location)
+{
+    QSqlRecord trackRecord = librarySourceModel->record();
+    trackRecord.setGenerated("id", false);
+    trackRecord.setValue("title", title);
+    trackRecord.setValue("artist", artist);
+    trackRecord.setValue("album", album);
+    (trackNum > 0) ? trackRecord.setValue("track_num", trackNum) : trackRecord.setNull("track_num");
+    (year > 0) ? trackRecord.setValue("year", year) : trackRecord.setNull("year");
+    trackRecord.setValue("genre", genre);
+    trackRecord.setValue("duration", duration);
+    trackRecord.setValue("location", location);
+
+    librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
+}
+
+
 void PlayerWindow::deleteFromLibrary()
 {
     QModelIndex indexOfFileToDelete = libraryProxyModel->mapToSource(ui->libraryView->currentIndex());
@@ -200,6 +249,7 @@ void PlayerWindow::deleteFromLibrary()
     }
 }
 
+
 void PlayerWindow::customContextMenu(const QPoint &point)
 {
     QMenu menu;
@@ -210,48 +260,6 @@ void PlayerWindow::customContextMenu(const QPoint &point)
     {
         menu.exec(ui->libraryView->viewport()->mapToGlobal(point));
     }
-}
-
-void PlayerWindow::onAddToLibraryActionTriggered()
-{
-    QString filepath = QFileDialog::getOpenFileName(this, "Add file to library");
-    TagLibFileRefWrapper tagLibFileRefWrapper(filepath);
-    if (!tagLibFileRefWrapper.fileRefIsNull())
-    {
-        QString title = tagLibFileRefWrapper.getTitle();
-        QString artist = tagLibFileRefWrapper.getArtist();
-        QString album = tagLibFileRefWrapper.getAlbum();
-        unsigned int trackNum = tagLibFileRefWrapper.getTrackNum();
-        unsigned int year = tagLibFileRefWrapper.getYear();
-        QString genre = tagLibFileRefWrapper.getGenre();
-        int duration = tagLibFileRefWrapper.getDurationInMilliseconds();
-
-        insertToTrackTable(title, artist, album, trackNum, year, genre, duration, filepath);
-    }
-}
-
-
-void PlayerWindow::insertToTrackTable(const QString &title,
-                                      const QString &artist,
-                                      const QString &album,
-                                      unsigned int trackNum,
-                                      unsigned int year,
-                                      const QString &genre,
-                                      int duration,
-                                      const QString &location)
-{
-    QSqlRecord trackRecord = librarySourceModel->record();
-    trackRecord.setGenerated("id", false);
-    trackRecord.setValue("title", title);
-    trackRecord.setValue("artist", artist);
-    trackRecord.setValue("album", album);
-    (trackNum > 0) ? trackRecord.setValue("track_num", trackNum) : trackRecord.setNull("track_num");
-    (year > 0) ? trackRecord.setValue("year", year) : trackRecord.setNull("year");
-    trackRecord.setValue("genre", genre);
-    trackRecord.setValue("duration", duration);
-    trackRecord.setValue("location", location);
-
-    librarySourceModel->insertRecord(librarySourceModel->rowCount(), trackRecord);
 }
 
 

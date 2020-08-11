@@ -266,7 +266,7 @@ QTreeView {
   </widget>
   <action name="actionAddToLibrary">
    <property name="text">
-    <string>Add File to Library</string>
+    <string>Add File(s) to Library</string>
    </property>
   </action>
  </widget>
