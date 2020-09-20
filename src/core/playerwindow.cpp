@@ -102,7 +102,7 @@ void PlayerWindow::initializeLibraryModels()
 void PlayerWindow::initializeLibraryView()
 {
     ui->libraryView->setModel(libraryProxyModel);
-    ui->libraryView->hideColumn(libraryProxyModel->getTrackIdColumn());
+    //ui->libraryView->hideColumn(libraryProxyModel->getTrackIdColumn());
 
     ui->libraryView->setContextMenuPolicy(Qt::CustomContextMenu);
     ui->libraryView->setItemDelegateForColumn(libraryProxyModel->getDurationColumn(), new TrackDurationDelegate(ui->libraryView));
@@ -110,6 +110,12 @@ void PlayerWindow::initializeLibraryView()
     ui->libraryView->setCurrentIndex(QModelIndex());
 
     restoreLibraryViewState();
+    /*
+    for (int i = 0; i < ui->libraryView->model()->columnCount(); i++)
+    {
+        qDebug() << ui->libraryView->model()->headerData(i, Qt::Horizontal).toString();
+    }
+    */
 }
 
 
@@ -155,6 +161,11 @@ void PlayerWindow::setUpConnections()
 {
     connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
 
+    //connect(ui->viewTrackId, &QAction::triggered, this, &PlayerWindow::viewTrackIdTriggered);
+    connect(ui->menuView, &QMenu::triggered, this, &PlayerWindow::menuViewActionTriggered);
+
+    connect(ui->actionAddToLibrary, &QAction::triggered, this, &PlayerWindow::onAddToLibraryActionTriggered);
+
     connect(ui->libraryView, &QTreeView::activated, this, &PlayerWindow::setMediaForPlayback);
     connect(ui->libraryView, &QTreeView::customContextMenuRequested, this, &PlayerWindow::customContextMenu);
 
@@ -172,6 +183,57 @@ void PlayerWindow::setUpConnections()
     connect(ui->controls, &PlayerControls::playOrPauseClicked, this, &PlayerWindow::onPlayOrPauseSignal);
     connect(ui->controls, &PlayerControls::nextClicked, this, &PlayerWindow::setNextMediaForPlayback);
     connect(ui->controls, &PlayerControls::prevClicked, this, &PlayerWindow::setPreviousMediaForPlayback);
+}
+
+
+void PlayerWindow::menuViewActionTriggered(QAction *action)
+{
+    int column;
+    if (action == ui->viewTrackId)
+    {
+        column = libraryProxyModel->getTrackIdColumn();
+    }
+    else if (action == ui->viewTitle)
+    {
+        column = libraryProxyModel->getTitleColumn();
+    }
+    else if (action == ui->viewArtist)
+    {
+        column = libraryProxyModel->getArtistColumn();
+    }
+    else if (action == ui->viewAlbum)
+    {
+        column = libraryProxyModel->getAlbumColumn();
+    }
+    else if (action == ui->viewTrackNum)
+    {
+        column = libraryProxyModel->getTrackNumColumn();
+    }
+    else if (action == ui->viewYear)
+    {
+        column = libraryProxyModel->getYearColumn();
+    }
+    else if (action == ui->viewGenre)
+    {
+        column = libraryProxyModel->getGenreColumn();
+    }
+    else if (action == ui->viewDuration)
+    {
+        column = libraryProxyModel->getDurationColumn();
+    }
+    else // action == ui->viewLocation
+    {
+        column = libraryProxyModel->getLocationColumn();
+    }
+
+    if (action->isChecked())
+    {
+        ui->libraryView->showColumn(column);
+    }
+    else
+    {
+        ui->libraryView->hideColumn(column);
+    }
 }
 
 

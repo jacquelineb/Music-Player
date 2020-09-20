@@ -262,11 +262,125 @@ QTreeView {
     </property>
     <addaction name="actionAddToLibrary"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="viewTrackId"/>
+    <addaction name="viewTitle"/>
+    <addaction name="viewArtist"/>
+    <addaction name="viewAlbum"/>
+    <addaction name="viewTrackNum"/>
+    <addaction name="viewYear"/>
+    <addaction name="viewGenre"/>
+    <addaction name="viewDuration"/>
+    <addaction name="viewLocation"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
   </widget>
   <action name="actionAddToLibrary">
    <property name="text">
     <string>Add File(s) to Library</string>
+   </property>
+  </action>
+  <action name="viewTrackId">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Track ID</string>
+   </property>
+  </action>
+  <action name="viewTitle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Title</string>
+   </property>
+  </action>
+  <action name="viewArtist">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Artist</string>
+   </property>
+  </action>
+  <action name="viewAlbum">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Album</string>
+   </property>
+  </action>
+  <action name="viewTrackNum">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Track Number</string>
+   </property>
+  </action>
+  <action name="viewYear">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Year</string>
+   </property>
+  </action>
+  <action name="viewGenre">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Genre</string>
+   </property>
+  </action>
+  <action name="viewDuration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Duration</string>
+   </property>
+  </action>
+  <action name="viewLocation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Location</string>
    </property>
   </action>
  </widget>

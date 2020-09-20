@@ -52,6 +52,7 @@ private:
 
 private slots:
     void onAddToLibraryActionTriggered();
+    void menuViewActionTriggered(QAction *action);
     void onMediaPlayerStatusChanged(QMediaPlayer::MediaStatus status);
     void onPlayOrPauseSignal();
     void setMediaForPlayback(const QModelIndex &index);
@@ -63,6 +64,7 @@ private slots:
     void updateTimePassed(int position);
     void customContextMenu(const QPoint &point);
     void deleteFromLibrary();
+
 };
 
 #endif // PLAYERWINDOW_H
