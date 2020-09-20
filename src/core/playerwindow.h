@@ -50,6 +50,8 @@ private:
                             int duration,
                             const QString &location);
 
+    void initializeViewMenu();
+
 private slots:
     void onAddToLibraryActionTriggered();
     void menuViewActionTriggered(QAction *action);
