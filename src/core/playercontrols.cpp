@@ -8,7 +8,7 @@ PlayerControls::PlayerControls(QWidget *parent) :
     ui(new Ui::PlayerControls)
 {
     ui->setupUi(this);
-    setButtonsIcons();
+    setIcons();
     restoreVolumeSliderState();
     setConnections();
 }
@@ -20,11 +20,12 @@ PlayerControls::~PlayerControls()
 }
 
 
-void PlayerControls::setButtonsIcons()
+void PlayerControls::setIcons()
 {
     ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->prevButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
     ui->nextButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+    ui->volumeLabel->setPixmap(style()->standardIcon(QStyle::SP_MediaVolume).pixmap(QSize(25,25)));
 }
 
 
@@ -70,13 +71,11 @@ void PlayerControls::updatePlaybackState(QMediaPlayer::State mediaState)
 {
     if (mediaState == QMediaPlayer::State::PlayingState)
     {
-        //ui->playOrPauseButton->setText("Pause");
         ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));
 
     }
     else
     {
-        //ui->playOrPauseButton->setText("Play");
         ui->playOrPauseButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     }
 }

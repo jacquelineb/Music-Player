@@ -21,7 +21,7 @@ public:
 private:
     Ui::PlayerControls *ui;
     QSettings session{"session.ini", QSettings::Format::IniFormat};
-    void setButtonsIcons();
+    void setIcons();
     void restoreVolumeSliderState();
     void setConnections();
 
