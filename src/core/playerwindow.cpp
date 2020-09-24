@@ -53,8 +53,7 @@ void PlayerWindow::initializeMediaPlayer()
 
 void PlayerWindow::restoreMediaPlayerVolume()
 {
-    const int DEFAULT_VOLUME = 100; // This should match DEFAULT_VOLUME in PlayerControls::restoreVolumeSliderState()
-    int volume = session.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
+    int volume = session.value("MediaPlayer/volume", ui->controls->DEFAULT_VOLUME).toInt();
     mediaPlayer->setVolume(volume);
 }
 

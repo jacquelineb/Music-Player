@@ -31,7 +31,6 @@ void PlayerControls::setIcons()
 
 void PlayerControls::restoreVolumeSliderState()
 {
-    const int DEFAULT_VOLUME = 100;
     int volume = session.value("MediaPlayer/volume", DEFAULT_VOLUME).toInt();
     ui->volumeSlider->setValue(volume);
 }

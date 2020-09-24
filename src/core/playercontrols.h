@@ -17,6 +17,7 @@ class PlayerControls : public QWidget
 public:
     explicit PlayerControls(QWidget *parent = nullptr);
     ~PlayerControls();
+    const int DEFAULT_VOLUME = 100;
 
 private:
     Ui::PlayerControls *ui;
