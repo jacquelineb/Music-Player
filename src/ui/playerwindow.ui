@@ -43,6 +43,9 @@ QSlider::handle:horizontal {
    <property name="styleSheet">
     <string notr="true">QLabel {
 	color: white;
+}
+QTreeView {
+	outline: 0;
 }</string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
