@@ -23,17 +23,28 @@
    <string notr="true">QMainWindow {
 	background-color: #1a1a1a;
 }
-QWidget {
-	color: white;
-}
 QScrollBar:horizontal, QScrollBar:vertical {
 	background-color: #1a1a1a;
 }
 QScrollBar::sub-page:horizontal, QScrollBar::add-page:horizontal {
 	background-color: #646464;
+}
+QMenuBar::item:pressed, QMenuBar::item:selected, QMenu::item:selected {
+	background-color: #646464;
+}
+QMenuBar {
+	border-bottom: 1px solid #646464;
+}
+QSlider::handle:horizontal {
+	background-color: #646464;
 }</string>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+	color: white;
+}</string>
+   </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="2" column="6">
      <widget class="QLabel" name="totalTime">
@@ -85,21 +96,29 @@ QScrollBar::sub-page:horizontal, QScrollBar::add-page:horizontal {
        <enum>Qt::StrongFocus</enum>
       </property>
       <property name="styleSheet">
-       <string notr="true">QTreeView::item:selected {
-	background-color: rgb(236, 193, 190);
+       <string notr="true">QTreeView {
+	background-color: #1a1a1a;
+	alternate-background-color: #646464;
+	color: white;
+}
+QTreeView::item:selected {
+	background-color: rgb(9, 1, 122);
+	color: white;
 }
 QHeaderView::section { 
 	color: white;
     background-color: #1a1a1a;
+	font-weight: bold;
 }
-QTreeView {
-	background-color: #1a1a1a;
-	alternate-background-color: #646464;
-	color: white;
+QHeaderView::section:hover { 
+    background-color: #646464;
 }</string>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Plain</enum>
+      </property>
+      <property name="lineWidth">
+       <number>1</number>
       </property>
       <property name="autoScroll">
        <bool>true</bool>
@@ -265,9 +284,15 @@ QTreeView {
    <property name="styleSheet">
     <string notr="true">background-color: #1a1a1a;
 color: white;
-</string>
+
+QAction::item:selected {
+	background-color: red;
+}</string>
    </property>
    <widget class="QMenu" name="menuFile">
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
